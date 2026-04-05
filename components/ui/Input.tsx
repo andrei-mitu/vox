@@ -2,6 +2,7 @@
 
 import { Text, TextField } from '@radix-ui/themes';
 import { forwardRef, useId } from 'react';
+import { cn } from '@/lib/utils';
 
 export type InputProps = TextField.RootProps & {
   /** When set, renders the standard label + validation row above the field. */
@@ -44,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         id={inputId}
         color={mergedColor}
-        className={className}
+        className={cn('font-fallback', className)}
         aria-invalid={ariaInvalid}
         {...fieldProps}
         aria-describedby={ariaDescribedBy || undefined}
@@ -60,7 +61,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         ? 'flex flex-row flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 min-w-0'
         : 'flex flex-row flex-wrap items-baseline justify-end gap-x-2 gap-y-0.5 min-w-0';
 
-    const rootClasses = [rootClassName, 'flex flex-col gap-1'].filter(Boolean).join(' ');
+    const rootClasses = cn('flex flex-col gap-1', rootClassName);
 
     return (
       <div className={rootClasses}>

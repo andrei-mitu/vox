@@ -1,15 +1,17 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from './ui/Button';
 
-const emptySubscribe = () => () => {};
-
 export function ThemeToggle() {
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (
@@ -26,10 +28,10 @@ export function ThemeToggle() {
       <Button
         variant="soft"
         type="button"
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         aria-label="Toggle color theme"
       >
-        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
       </Button>
     </div>
   );

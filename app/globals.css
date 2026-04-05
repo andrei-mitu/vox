@@ -39,7 +39,7 @@
 }
 
 /* Light theme overrides */
-.theme-light {
+.light {
   --bg-primary: #f5f7fa;
   --bg-secondary: #ffffff;
   --bg-muted: #e6e8ea;
@@ -54,12 +54,18 @@
 @theme inline {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nexa), var(--font-inter), sans-serif;
+  --font-fallback: var(--font-inter), sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+.radix-themes {
+  --default-font-family: var(--font-sans);
+  --heading-font-family: var(--font-sans);
 }

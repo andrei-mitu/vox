@@ -15,7 +15,7 @@ export default async function Home() {
 
   return (
     <main className="p-8 flex flex-col gap-4 items-start">
-      <Heading size="6">Welcome, {user.email}</Heading>
+      <Heading size="6">Welcome, <span className="font-fallback">{user.email}</span></Heading>
       <form action="/api/auth/logout" method="post">
         <Button type="submit" color="red" variant="solid">
           Logout
