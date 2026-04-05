@@ -1,0 +1,42 @@
+import { cookies } from 'next/headers';
+import { signInWithPassword } from '@/lib/auth/server';
+import { parseLoginBody } from '@/lib/validation/login';
+import { ApiResponse } from '@/lib/api/response';
+
+async function readJsonBody(request: Request): Promise<unknown | null> {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await readJsonBody(request);
+    if (body === null) {
+      return ApiResponse.badRequest('Invalid JSON body');
+    }
+
+    const parsed = parseLoginBody(body);
+    if (!parsed.ok) {
+      return ApiResponse.badRequest(parsed.message);
+    }
+
+    const cookieStore = await cookies();
+    const result = await signInWithPassword(
+      parsed.data.email,
+      parsed.data.password,
+      cookieStore
+    );
+
+    if (!result.ok) {
+      return ApiResponse.error(result.message, result.status);
+    }
+
+    return ApiResponse.ok({ user: result.user });
+  } catch (e) {
+    console.error('Login error', e);
+    return ApiResponse.internalServerError('Server error');
+  }
+}
