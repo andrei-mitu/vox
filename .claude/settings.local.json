@@ -4,7 +4,17 @@
       "Bash(winget upgrade:*)",
       "Bash(bun run:*)",
       "Bash(bun remove:*)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(mv:*)",
+      "Bash(cp -r \"app/\\(login\\)\" \"app/\\(auth\\)\")",
+      "Bash(rm -rf \"app/\\(login\\)\")",
+      "Bash(mkdir -p components/theme)",
+      "Bash(cp components/ThemeToggle.tsx components/theme/theme-toggle.tsx)",
+      "Bash(cp components/ThemeProvider.tsx components/theme/theme-provider.tsx)",
+      "Bash(rm components/ThemeToggle.tsx components/ThemeProvider.tsx)",
+      "Bash(sed -i \"s|@/components/ThemeToggle|@/components/theme/theme-toggle|g\" \"app/\\(auth\\)/layout.tsx\" components/sidebar/sidebar.tsx)",
+      "Bash(sed -i \"s|@/components/ThemeProvider|@/components/theme/theme-provider|g\" app/layout.tsx)",
+      "Bash(rm:*)"
     ]
   }
 }

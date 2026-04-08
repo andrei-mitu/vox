@@ -29,11 +29,11 @@
 
     /* Grid background */
     background-image: repeating-linear-gradient(
-            90deg,
-            var(--bg-primary) 0,
-            var(--bg-primary) var(--grid-size),
-            var(--bg-muted) var(--grid-size),
-            var(--bg-muted) calc(var(--grid-size) * 2)
+        90deg,
+        var(--bg-primary) 0,
+        var(--bg-primary) var(--grid-size),
+        var(--bg-muted) var(--grid-size),
+        var(--bg-muted) calc(var(--grid-size) * 2)
     );
     background-size: var(--grid-size) var(--grid-size);
 }

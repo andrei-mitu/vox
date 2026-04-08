@@ -6,7 +6,7 @@ import {ChevronLeft, ChevronRight, LogOut, Plus} from 'lucide-react';
 import {Tooltip} from '@radix-ui/themes';
 import {NAV_ITEMS} from './nav-config';
 import {SidebarNavItem} from './nav-item';
-import {ThemeToggleButton} from '@/components/ThemeToggle';
+import {ThemeToggleButton} from '@/components/theme/theme-toggle';
 import {VoxLogo} from '@/components/ui/vox-logo';
 import {cn} from '@/lib/utils';
 

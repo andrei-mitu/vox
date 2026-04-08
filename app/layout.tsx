@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import '@radix-ui/themes/styles.css';
 import {Geist_Mono, Inter} from "next/font/google";
-import ThemeProvider from '@/components/ThemeProvider';
+import ThemeProvider from '@/components/theme/theme-provider';
 import {nexaText} from '@/lib/fonts';
 import "./globals.css";
 

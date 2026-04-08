@@ -5,159 +5,230 @@ clear boundaries, explicit types, secure defaults, and patterns that survive rev
 
 ---
 
-## Stack (non-negotiable context)
+## Stack
 
-| Layer           | Choice                                                                                    |
-|-----------------|-------------------------------------------------------------------------------------------|
-| Framework       | **Next.js 16** (App Router)                                                               |
-| Runtime / PM    | **Bun** (`bun --bun` in scripts)                                                          |
-| UI              | **Radix Themes** (`@radix-ui/themes`) — theming, layout primitives, accessible components |
-| Styling         | **Tailwind CSS 4** (with `tailwind-merge` where class names merge)                        |
-| Database & auth | **Supabase** (Postgres + Auth; `@supabase/supabase-js`, auth helpers for Next.js)         |
-| Deploy          | **Vercel** (env vars, build output, serverless/Node runtimes)                             |
-| React           | **React 19**                                                                              |
-
----
-
-<!-- BEGIN:nextjs-agent-rules -->
-
-## Next.js 16 — verify before you ship
-
-This is **not** the Next.js from older training data: APIs, conventions, and file layout can differ. **Before** adding
-routes, data fetching, caching, or config:
-
-1. Read the relevant topic under `node_modules/next/dist/docs/` (or the official Next.js 16 docs).
-2. Follow current App Router patterns; **heed deprecation notices** and prefer documented APIs over assumptions.
-
-<!-- END:nextjs-agent-rules -->
+| Layer        | Choice                                                                               |
+|--------------|--------------------------------------------------------------------------------------|
+| Framework    | **Next.js 16** (App Router)                                                          |
+| Runtime / PM | **Bun** (package manager and script runner; `next dev/build/start` for Next.js)      |
+| UI           | **Radix Themes** (`@radix-ui/themes`) — theming, layout primitives, accessible UI    |
+| Styling      | **Tailwind CSS 4** + `tailwind-merge` for conditional class merging                  |
+| Database     | **PostgreSQL** via **Drizzle ORM** + **postgres.js** (direct connection, no Supabase SDK) |
+| Auth         | Custom JWT in `httpOnly` cookie — `jose` for signing, `bcryptjs` for password hashing |
+| Deploy       | **Vercel** — Node.js runtime for all Route Handlers                                  |
+| React        | **React 19**                                                                         |
 
 ---
 
-## Fullstack architecture (Next.js App Router)
+## File structure
 
-- **Server Components by default** for pages and data reads that do not need client state; add `"use client"` only when
-  strictly needed (event handlers, browser APIs, hooks).
-- Use `<Suspense>` boundaries with fallbacks around async Server Components.
+```
+app/                              Next.js App Router — routes only, no business logic
+  (auth)/                         Route group: unauthenticated pages (login, register, reset)
+    login/page.tsx
+    layout.tsx
+  (dashboard)/                    Route group: authenticated pages
+    dashboard/page.tsx
+    shipments/page.tsx
+    clients/page.tsx
+    carriers/page.tsx
+    layout.tsx                    Auth guard — redirects to /login if no session
+  api/                            Route Handlers (controllers) — call services, return JSON
+    auth/
+      login/route.ts
+      logout/route.ts
+  globals.css
+  layout.tsx                      Root layout
+  page.tsx                        Root redirect
+
+components/                       Reusable UI components
+  ui/                             Base primitives (Button, Input, Card, Heading…)
+  sidebar/                        Sidebar and navigation
+  theme/                          Theme toggle and provider
+
+hooks/                            Client-side React hooks
+  use-login-form.ts
+
+lib/                              Shared code
+  api/
+    response.ts                   ApiResponse helper for Route Handlers
+  client/                         Client-side helpers (browser only, safe for "use client")
+    login-client.ts
+  auth/
+    session.ts                    JWT sign / verify (server-only)
+  db/                             Database
+    schema/                       Drizzle table definitions — one file per table
+      users.ts
+      profiles.ts
+      teams.ts
+      team-members.ts
+      access-requests.ts
+      index.ts                    Re-exports all schema
+    index.ts                      Lazy drizzle singleton (getDb)
+  repositories/                   Data access layer — all SQL via Drizzle, no business logic
+    user.repository.ts
+    team.repository.ts
+    access-request.repository.ts
+  services/                       Business logic — calls repositories, no direct SQL
+    auth.service.ts
+    team.service.ts
+  dto/                            Zod schemas + inferred TS types for request/response shapes
+    auth.dto.ts
+    team.dto.ts
+  fonts.ts
+  utils.ts
+
+db/                               SQL files (version-controlled)
+  migrations/                     Generated by drizzle-kit — do not edit manually
+  seeds/                          Plain SQL seed files
+
+scripts/                          CLI scripts run with bun
+  seed.ts
+
+drizzle.config.ts
+```
+
+### Layer responsibilities
+
+| Layer | What it does | What it must NOT do |
+|-------|-------------|----------------------|
+| Route Handler (`app/api/`) | Parse request, validate with DTO, call one service, return JSON | Contain business logic or SQL |
+| Service (`lib/services/`) | Orchestrate business rules, call repositories | Execute raw SQL, import from `app/` |
+| Repository (`lib/repositories/`) | Execute Drizzle queries, return typed rows | Contain business logic |
+| DTO (`lib/dto/`) | Define Zod schemas and inferred TypeScript types | Import from services or repositories |
+| Schema (`lib/db/schema/`) | Define Drizzle table structure and export inferred types | Import application logic |
+
+---
+
+## Naming conventions
+
+### Files
+
+| Type | Convention | Example |
+|------|-----------|---------|
+| Next.js route files | lowercase (fixed by Next.js) | `page.tsx`, `layout.tsx`, `route.ts` |
+| React components | PascalCase | `Sidebar.tsx`, `Button.tsx` |
+| Non-component TS files | kebab-case | `auth.service.ts`, `use-login-form.ts` |
+| Drizzle schema files | kebab-case, singular | `team-members.ts`, `access-requests.ts` |
+| Repository files | `<entity>.repository.ts` | `user.repository.ts` |
+| Service files | `<entity>.service.ts` | `auth.service.ts` |
+| DTO files | `<entity>.dto.ts` | `auth.dto.ts` |
+
+### Code
+
+- Components: PascalCase — `function Sidebar()`, `const Button = () =>`
+- Hooks: `use` prefix, camelCase — `useLoginForm`
+- Functions and variables: camelCase — `findUserByEmail`, `sessionCookie`
+- Database columns: snake_case in SQL / Drizzle column name, camelCase in TypeScript — `password_hash` → `passwordHash`
+- Zod schemas: camelCase with `Schema` suffix — `loginCredentialsSchema`
+- TypeScript types from Drizzle: PascalCase — `User`, `Team`, `NewTeamMember`
+- DTO interfaces: PascalCase with `Dto` suffix — `SessionUserDto`, `TeamDto`
+
+---
+
+## Next.js 16 App Router rules
+
+- **Server Components by default** — add `"use client"` only for event handlers, browser APIs, or hooks.
+- Use `<Suspense>` with fallbacks around async Server Components.
 - Use `next/image` for all images; never raw `<img>`.
 - Use `next/link` for all internal navigation.
-- Always provide `loading.tsx` and `error.tsx` for every route segment.
-- Use Server Actions (`"use server"`) for all mutations.
-- **Route Handlers** (`app/api/.../route.ts`) for mutations, webhooks, and APIs that must not expose secrets to the
-  browser. Use appropriate HTTP methods and status codes.
-- **Caching**: Be explicit about what is static vs dynamic. If you use `fetch` with caching or Next.js cache APIs,
-  document intent in code so behavior matches product expectations.
-- **Environment variables**: `NEXT_PUBLIC_*` only for values safe in the browser. **Never** expose service role keys or
-  server secrets to the client. Use `.env.example` as the contract for required vars (see existing Supabase entries).
+- Provide `loading.tsx` and `error.tsx` for every route segment.
+- **Route Handlers** for all API endpoints — no secrets in client bundles.
+- **Never** use `useEffect` for data fetching — use RSC or Server Actions.
+- `NEXT_PUBLIC_*` only for values that are safe to expose in the browser.
 
 ---
 
-## TypeScript and code quality
+## TypeScript
 
-- **Strict typing**: Prefer explicit function return types for public exports and route handlers. Avoid `any`; use
-  `unknown` + narrowing when shape is uncertain. Strictly no `@ts-ignore`.
-- Prefer `interface` over `type` for object shapes.
-- Avoid enums; use `as const` objects instead.
-- Export types from `src/types/` or `types/`.
-- **Narrow boundaries**: Validate external input (request bodies, query params, webhooks) at the edge of the system (Zod
-  or equivalent if the project adds it; otherwise minimal manual checks with clear errors).
-- **Errors**: Use typed results or consistent HTTP JSON error shapes in Route Handlers. Do not leak stack traces or
-  internal messages to clients in production paths.
-- **Imports**: Use path aliases if the project defines them; otherwise consistent relative imports. Keep server-only
-  code out of client bundles (no Supabase service role or secrets in `"use client"` modules).
+- Explicit return types on all exported functions and Route Handlers.
+- No `any` — use `unknown` + narrowing for external input.
+- No `@ts-ignore`.
+- Prefer `interface` for object shapes, `type` for unions and mapped types.
+- No `enum` — use `as const` or Drizzle/Zod-inferred union types.
+- Validate all external input (request bodies, query params) with Zod at the Route Handler boundary.
 
 ---
 
-## Code Style
+## Code style
 
+- 4-space indentation (enforced by `.editorconfig`).
+- Single quotes for strings.
 - Functional components only — no class components.
-- Arrow functions for components.
-- Named exports for components, default export only for page/layout files.
-- kebab-case for filenames: `user-profile.tsx` not `UserProfile.tsx`.
-- Early returns instead of nested conditionals.
+- Named exports for all components and utilities; default export only for `page.tsx` and `layout.tsx`.
+- Early returns over nested conditionals.
+- Immutable patterns — never mutate objects in place; return new copies.
 
 ---
 
-## UI: Radix Themes and components
+## Database (Drizzle + postgres.js)
 
-- **Prefer Radix Themes** for layout and controls: `Theme`, `Flex`, `Box`, `Text`, `Heading`, `Button`, `TextField`,
-  `Callout`, dialogs, etc. Compose these instead of raw HTML when a Theme primitive fits.
-- **Custom components** should be **thin wrappers or compositions** around Radix Themes (and, when needed, lower-level
-  `@radix-ui/react-*` primitives). Re-export or wrap for app-specific props and styling; do not duplicate accessibility
-  behavior by reimplementing focus traps, ARIA, or keyboard handling.
-- **Component Rules**: Custom components should be used. All components should be created as a wrapper for a Radix
-  existing component or a set of components.
-- **Theming**: Respect dark/light via existing setup (`next-themes` + Radix Themes `appearance`). Use Theme tokens (
-  `--accent-9`, `--gray-2`) and `className` with Tailwind for one-off layout; avoid hard-coded colors that fight the
-  theme.
-- **Never mix Shadcn/ui** — this project uses Radix Themes directly.
-- **`"use client"`**: Only mark components client when they need hooks, browser APIs, or Radix client interactivity.
-  Keep pages and data-loading logic server-side when possible.
+- Schema changes: edit `lib/db/schema/`, run `bun run db:generate`, commit the generated SQL file.
+- Never edit files in `db/migrations/` by hand.
+- All queries live in `lib/repositories/` — never write SQL in services or route handlers.
+- The DB client (`lib/db/index.ts`) is lazy — it initializes only on first use, never at import time.
+- `DATABASE_URL` is the only required database env var; `JWT_SECRET` is required for auth.
 
----
-
-## Supabase
-
-- Use the **SSR** Supabase client from `src/lib/supabase/server.ts` (or standard Next Auth helpers) in Server Components
-  and Server Actions.
-- Use the browser client from `src/lib/supabase/client.ts` in Client Components only.
-- **Row Level Security (RLS)**: Assume RLS is enforced. Client-side code uses the **anon key** and policies. Privileged
-  operations belong in Route Handlers or Server Actions with a **service role** only on the server and never in client
-  bundles.
-- Use `supabase.auth.getUser()` (not `getSession()`) in server-side code.
-- **Queries**: Prefer typed database types when generated (e.g. Supabase CLI types); otherwise define narrow interfaces
-  for query results used across the app.
-- **Migrations and schema**: Schema changes belong in Supabase migrations or documented SQL — not ad-hoc production
-  edits. When suggesting schema, consider indexes and RLS policies together with queries.
+```
+bun run db:generate   # generate SQL migration from schema changes
+bun run db:migrate    # apply pending migrations
+bun run db:seed       # run db/seeds/*.sql
+bun run db:studio     # open Drizzle Studio
+```
 
 ---
 
-## What NOT to do
+## Authentication
 
-- Do NOT add `"use client"` to layouts or pages unless unavoidable.
-- Do NOT use `useEffect` for data fetching — use RSC or Server Actions.
-- Do NOT hardcode secrets or API keys anywhere — use `.env.local`.
-- Do NOT commit `.env.local`.
-- Do NOT install new packages without confirming with the user first.
-
----
-
-## Security and privacy
-
-- Validate and sanitize user input server-side for authoritative actions.
-- Use parameterized Supabase queries; never concatenate raw SQL from user input in application code.
-- Cookies: `httpOnly`, `secure`, and `sameSite` where applicable for session cookies.
-- Do not log tokens, passwords, or PII.
+- Sessions are JWT tokens stored in an `httpOnly`, `secure`, `sameSite=lax` cookie named `vox_session`.
+- Sign/verify logic lives in `lib/auth/session.ts` — import only from server-side code.
+- `getSessionUser()` in `lib/services/auth.service.ts` is the single source of truth for the current user.
+- Never return different error messages for "user not found" vs "wrong password" — same message prevents email enumeration.
+- Always run `bcrypt.compare` even when the user does not exist (dummy hash) to prevent timing attacks.
 
 ---
 
-## Vercel deployment
+## UI — Radix Themes
 
-- **Build**: Ensure `bun run build` succeeds locally before treating work as done.
-- **Env**: Document new variables in `.env.example`. Match Vercel project settings for preview vs production.
-- **Runtime**: Choose Node vs Edge deliberately for Route Handlers (Supabase and some Node APIs may require Node
-  runtime).
-- **Assets and regions**: Keep default assumptions unless the product requires otherwise; note any constraint in
-  PR-style summaries when relevant.
+- **Prefer Radix Themes primitives**: `Theme`, `Flex`, `Box`, `Text`, `Heading`, `Button`, `TextField`, dialogs, etc.
+- Custom components must wrap or compose Radix primitives — never re-implement ARIA, focus traps, or keyboard handling.
+- Never mix Shadcn/ui — this project uses Radix Themes directly.
+- Respect `next-themes` + Radix `appearance` for dark/light — use Theme tokens (`--accent-9`, `--gray-2`), not hard-coded colors.
 
 ---
 
-## What “done” looks like
+## Security
 
-- Types compile; no new avoidable `any`.
-- UI uses Radix Themes consistently; new primitives are wrapped/composed, not reimplemented.
-- Secrets stay server-side; client only sees `NEXT_PUBLIC_*` where appropriate.
-- Next.js 16 patterns match current docs; no deprecated APIs without a planned migration.
-- Changes are scoped to the task — no unrelated refactors or gratuitous new files.
+- Never log tokens, passwords, session cookies, or PII.
+- Never expose internal error messages or stack traces in HTTP responses.
+- Validate and sanitize all user input server-side before processing.
+- New secrets belong in `.env.local` (never committed) and documented in `.env.example`.
 
 ---
 
-## Quick reference — project scripts
+## What "done" looks like
 
-- Dev: `bun run dev`
-- Build: `bun run build`
-- Start (production): `bun run start`
-- Lint: `bun run lint`
-- Typecheck: `bun run typecheck`
-- Test: `bun run test`
+- `bun run typecheck` passes with zero errors.
+- `bun run lint` passes with zero errors.
+- UI uses Radix Themes consistently; no new hard-coded colors.
+- No secrets in client bundles; no `NEXT_PUBLIC_*` for server-only values.
+- New env vars documented in `.env.example`.
+- Schema changes include a generated migration file committed alongside the code.
+
+---
+
+## Scripts
+
+```
+bun run dev           # start dev server (next dev)
+bun run build         # production build (next build)
+bun run start         # start production server
+bun run lint          # ESLint
+bun run typecheck     # tsc --noEmit
+bun run db:generate   # drizzle-kit generate
+bun run db:migrate    # drizzle-kit migrate
+bun run db:seed       # run SQL seeds
+bun run db:studio     # Drizzle Studio
+```
 
 Always run `bun run typecheck && bun run lint` after making changes.

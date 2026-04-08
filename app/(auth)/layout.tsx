@@ -1,4 +1,4 @@
-import {ThemeToggleButton} from '@/components/ThemeToggle';
+import {ThemeToggleButton} from '@/components/theme/theme-toggle';
 
 export default function LoginLayout({
                                         children,
