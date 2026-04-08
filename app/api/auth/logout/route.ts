@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers';
-import { signOutAndRedirect } from '@/lib/auth/server';
+import { signOutAndRedirect } from '@/lib/services/auth.service';
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-  return signOutAndRedirect(request.url, cookieStore);
+  return signOutAndRedirect(request.url);
 }

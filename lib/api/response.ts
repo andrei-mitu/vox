@@ -49,7 +49,9 @@ export class ApiResponse {
   /**
    * 500 Internal Server Error
    */
-  static internalServerError(message = 'Internal server error') {
+  static internalServerError(error: unknown, message = 'Internal server error') {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('API Error:', msg);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

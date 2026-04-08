@@ -1,4 +1,4 @@
-import type { LoginCredentials } from '@/lib/validation/login';
+import type { LoginCredentials } from '@/lib/dto/auth.dto';
 
 export type LoginClientResult =
   | { ok: true }

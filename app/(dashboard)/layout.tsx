@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getSessionUser } from '@/lib/auth/server';
+import { getSessionUser } from '@/lib/services/auth.service';
 import { Sidebar } from '@/components/sidebar/sidebar';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getSessionUser(await cookies());
+  const user = await getSessionUser();
   if (!user) redirect('/login');
 
   return (

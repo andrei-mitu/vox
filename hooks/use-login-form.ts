@@ -6,7 +6,7 @@ import { requestLogin } from '@/lib/auth/login-client';
 import {
   parseLoginCredentials,
   type LoginFieldErrors,
-} from '@/lib/validation/login';
+} from '@/lib/dto/auth.dto';
 
 export function useLoginForm() {
   const router = useRouter();
