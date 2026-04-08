@@ -32,7 +32,7 @@ export function useLoginForm() {
       return;
     }
 
-    router.push('/');
+    router.push('/dashboard');
   }, [email, password, router]);
 
   const handleSubmit = useCallback(

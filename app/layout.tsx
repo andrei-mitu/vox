@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import '@radix-ui/themes/styles.css';
 import { Inter, Geist_Mono } from "next/font/google";
 import ThemeProvider from '@/components/ThemeProvider';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { nexaText } from '@/lib/fonts';
 import "./globals.css";
 
@@ -19,6 +18,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vox",
   description: "TMS",
+  icons: {
+    icon: [
+      // "Dark Main" = light-coloured text/graphic — legible on dark browser chrome
+      { url: '/images/logo/VOX Dark Main gradient.svg', media: '(prefers-color-scheme: dark)' },
+      // "Dark 2" = dark-coloured text/graphic — legible on light browser chrome
+      { url: '/images/logo/VOX Dark 2 gradient.svg', media: '(prefers-color-scheme: light)' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -34,7 +41,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <ThemeToggle />
           {children}
         </ThemeProvider>
       </body>

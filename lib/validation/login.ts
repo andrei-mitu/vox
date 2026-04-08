@@ -2,13 +2,18 @@ import { z } from 'zod';
 
 const trimmed = z.string().trim();
 
+// Client-side schema: non-empty only.
+// Full structural validation stays server-side to avoid leaking password policy
+// via UX differences (enumeration oracle).
 export const loginCredentialsSchema = z.object({
-  email: z.email('Use a valid address with @ (e.g. you@domain.com)').trim()
-      .min(1, 'Enter your email (include @)'),
-  password: trimmed
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must include at least one capital letter')
-    .regex(/\d/, 'Password must include at least one digit'),
+  email: trimmed.min(1, 'Enter your email'),
+  password: trimmed.min(1, 'Enter your password'),
+});
+
+// Server-side schema: full rules enforced at the API boundary.
+export const loginCredentialsServerSchema = z.object({
+  email: z.string().email('Invalid email address').trim(),
+  password: z.string().min(1, 'Password is required'),
 });
 
 export type LoginCredentials = z.infer<typeof loginCredentialsSchema>;
@@ -39,7 +44,7 @@ export function parseLoginCredentials(
 export function parseLoginBody(
   input: unknown
 ): { ok: true; data: LoginCredentials } | { ok: false; message: string } {
-  const result = loginCredentialsSchema.safeParse(input);
+  const result = loginCredentialsServerSchema.safeParse(input);
   if (!result.success) {
     const message = result.error.issues[0]?.message ?? 'Invalid input';
     return { ok: false, message };

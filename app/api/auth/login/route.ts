@@ -34,9 +34,8 @@ export async function POST(request: Request) {
       return ApiResponse.error(result.message, result.status);
     }
 
-    return ApiResponse.ok({ user: result.user });
-  } catch (e) {
-    console.error('Login error', e);
+    return ApiResponse.ok(null);
+  } catch {
     return ApiResponse.internalServerError('Server error');
   }
 }

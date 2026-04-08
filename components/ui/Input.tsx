@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         id={inputId}
         color={mergedColor}
-        className={cn('font-fallback', className)}
+        className={cn(className)}
         aria-invalid={ariaInvalid}
         {...fieldProps}
         aria-describedby={ariaDescribedBy || undefined}

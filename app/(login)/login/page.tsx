@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Heading } from '@/components/ui/Heading';
 import { Input } from '@/components/ui/Input';
+import { VoxLogo } from '@/components/ui/vox-logo';
 import { useLoginForm } from '@/hooks/use-login-form';
 import { Text } from '@radix-ui/themes';
 
@@ -19,8 +20,9 @@ export default function LoginPage() {
   } = useLoginForm();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card size="4" className="w-full max-w-md shadow-lg">
+    <div className="flex flex-col items-center gap-8 w-full max-w-md">
+      <VoxLogo width={180} height={90} />
+      <Card size="4" className="w-full shadow-[var(--shadow-card)]">
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-5"
