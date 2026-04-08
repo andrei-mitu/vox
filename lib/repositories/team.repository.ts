@@ -29,6 +29,10 @@ export async function findTeamsByUserId(userId: string): Promise<Team[]> {
         .where(eq(teamMembers.userId, userId));
 }
 
+export async function findAllTeams(): Promise<Team[]> {
+    return db().select().from(teams).orderBy(teams.name);
+}
+
 export async function createTeam(data: NewTeam): Promise<Team> {
     const rows = await db().insert(teams).values(data).returning();
     return rows[0]!;

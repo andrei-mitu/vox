@@ -1,4 +1,4 @@
-import {LayoutDashboard, type LucideIcon, Package, Truck, Users} from 'lucide-react';
+import { LayoutDashboard, type LucideIcon, Package, Truck, Users } from 'lucide-react';
 
 export interface NavItem {
     label: string;
@@ -6,9 +6,11 @@ export interface NavItem {
     icon: LucideIcon;
 }
 
-export const NAV_ITEMS: NavItem[] = [
-    {label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard},
-    {label: 'Shipments', href: '/shipments', icon: Package},
-    {label: 'Clients', href: '/clients', icon: Users},
-    {label: 'Carriers', href: '/carriers', icon: Truck},
-];
+export function getNavItems(workspaceSlug: string): NavItem[] {
+    return [
+        { label: 'Dashboard', href: `/${workspaceSlug}/dashboard`, icon: LayoutDashboard },
+        { label: 'Shipments', href: `/${workspaceSlug}/shipments`, icon: Package },
+        { label: 'Clients', href: `/${workspaceSlug}/clients`, icon: Users },
+        { label: 'Carriers', href: `/${workspaceSlug}/carriers`, icon: Truck },
+    ];
+}

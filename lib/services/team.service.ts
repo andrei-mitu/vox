@@ -1,4 +1,4 @@
-import {addTeamMember, createTeam, findTeamBySlug, findTeamsByUserId} from '@/lib/repositories/team.repository';
+import {addTeamMember, createTeam, findAllTeams, findTeamBySlug, findTeamsByUserId} from '@/lib/repositories/team.repository';
 import type {CreateTeamInput, TeamDto} from '@/lib/dto/team.dto';
 import type {Team} from '@/lib/db/schema';
 
@@ -23,6 +23,14 @@ function isUniqueViolation(err: unknown): boolean {
 
 export async function getTeamsForUser(userId: string): Promise<TeamDto[]> {
     const teams = await findTeamsByUserId(userId);
+    return teams.map(toTeamDto);
+}
+
+/** Admins see all teams; regular users see only their own memberships. */
+export async function getVisibleTeams(userId: string, role: 'admin' | 'user'): Promise<TeamDto[]> {
+    const teams = role === 'admin'
+        ? await findAllTeams()
+        : await findTeamsByUserId(userId);
     return teams.map(toTeamDto);
 }
 

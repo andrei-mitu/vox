@@ -29,7 +29,7 @@ export function useLoginForm() {
             return;
         }
 
-        router.push('/dashboard');
+        router.push('/');
     }, [email, password, router]);
 
     const handleSubmit = useCallback(

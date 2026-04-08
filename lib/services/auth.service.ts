@@ -1,7 +1,7 @@
 import {cookies} from 'next/headers';
 import {NextResponse} from 'next/server';
 import bcrypt from 'bcryptjs';
-import {findUserByEmail} from '@/lib/repositories/user.repository';
+import {findSystemRoleById, findUserByEmail} from '@/lib/repositories/user.repository';
 import {sessionCookie, signSession, verifySession} from '@/lib/auth/session';
 import type {SessionUserDto} from '@/lib/dto/auth.dto';
 
@@ -61,7 +61,12 @@ export async function getSessionUser(): Promise<SessionUserDto | null> {
     const payload = await verifySession(token);
     if (!payload) return null;
 
-    return {id: payload.sub, email: payload.email, role: payload.role};
+    // Always fetch the live role from DB — the JWT role may be stale if the
+    // user's system_role was changed after the token was issued.
+    const role = await findSystemRoleById(payload.sub);
+    if (!role) return null;
+
+    return {id: payload.sub, email: payload.email, role};
 }
 
 // ---------------------------------------------------------------------------
