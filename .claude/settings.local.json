@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(winget upgrade:*)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "Bash(bun remove:*)",
+      "Bash(bun add:*)"
     ]
   }
 }

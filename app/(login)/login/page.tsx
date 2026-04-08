@@ -22,14 +22,14 @@ export default function LoginPage() {
     return (
         <div className="flex flex-col items-center gap-8 w-full max-w-md">
             <VoxLogo width={180} height={90}/>
-            <Card size="4" className="w-full shadow-[var(--shadow-card)]">
+            <Card size="4" className="w-full shadow-(--shadow-card)">
                 <form
                     onSubmit={handleSubmit}
                     className="flex flex-col gap-5"
                     autoComplete="on"
                     noValidate
                 >
-                    <Heading align="center" size="6" className="text-[var(--text-primary)]">
+                    <Heading align="center" size="6" className="text-text-primary">
                         Sign in to Vox
                     </Heading>
 

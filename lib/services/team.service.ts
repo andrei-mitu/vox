@@ -1,55 +1,55 @@
-import { findTeamsByUserId, createTeam, addTeamMember, findTeamBySlug } from '@/lib/repositories/team.repository';
-import type { CreateTeamInput, TeamDto } from '@/lib/dto/team.dto';
-import type { Team } from '@/lib/db/schema';
+import {addTeamMember, createTeam, findTeamBySlug, findTeamsByUserId} from '@/lib/repositories/team.repository';
+import type {CreateTeamInput, TeamDto} from '@/lib/dto/team.dto';
+import type {Team} from '@/lib/db/schema';
 
 function toTeamDto(team: Team): TeamDto {
-  return {
-    id:         team.id,
-    name:       team.name,
-    slug:       team.slug,
-    logoUrl:    team.logoUrl ?? null,
-    visibility: team.visibility,
-  };
+    return {
+        id: team.id,
+        name: team.name,
+        slug: team.slug,
+        logoUrl: team.logoUrl ?? null,
+        visibility: team.visibility,
+    };
 }
 
 function isUniqueViolation(err: unknown): boolean {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    (err as { code: unknown }).code === '23505'
-  );
+    return (
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: unknown }).code === '23505'
+    );
 }
 
 export async function getTeamsForUser(userId: string): Promise<TeamDto[]> {
-  const teams = await findTeamsByUserId(userId);
-  return teams.map(toTeamDto);
+    const teams = await findTeamsByUserId(userId);
+    return teams.map(toTeamDto);
 }
 
-export type CreateTeamSuccess = { ok: true;  team: TeamDto };
+export type CreateTeamSuccess = { ok: true; team: TeamDto };
 export type CreateTeamFailure = { ok: false; status: number; message: string };
 
 export async function createNewTeam(
-  input: CreateTeamInput,
-  ownerId: string
+    input: CreateTeamInput,
+    ownerId: string
 ): Promise<CreateTeamSuccess | CreateTeamFailure> {
-  const existing = await findTeamBySlug(input.slug);
-  if (existing) {
-    return { ok: false, status: 409, message: 'A team with that slug already exists.' };
-  }
-
-  try {
-    const team = await createTeam({
-      name:       input.name,
-      slug:       input.slug,
-      visibility: input.visibility,
-    });
-    await addTeamMember({ teamId: team.id, userId: ownerId, role: 'owner' });
-    return { ok: true, team: toTeamDto(team) };
-  } catch (err) {
-    if (isUniqueViolation(err)) {
-      return { ok: false, status: 409, message: 'A team with that slug already exists.' };
+    const existing = await findTeamBySlug(input.slug);
+    if (existing) {
+        return {ok: false, status: 409, message: 'A team with that slug already exists.'};
     }
-    throw err;
-  }
+
+    try {
+        const team = await createTeam({
+            name: input.name,
+            slug: input.slug,
+            visibility: input.visibility,
+        });
+        await addTeamMember({teamId: team.id, userId: ownerId, role: 'owner'});
+        return {ok: true, team: toTeamDto(team)};
+    } catch (err) {
+        if (isUniqueViolation(err)) {
+            return {ok: false, status: 409, message: 'A team with that slug already exists.'};
+        }
+        throw err;
+    }
 }

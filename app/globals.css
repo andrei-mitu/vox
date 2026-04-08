@@ -2,98 +2,97 @@
 
 /* Custom design tokens */
 :root {
-  /* Grid */
-  --grid-size: 30px;
+    /* Grid */
+    --grid-size: 30px;
 
-  /* Dark theme defaults */
-  --bg-primary: #1a2328;   /* deepest background, page base */
-  --bg-secondary: #263238; /* card / panel surface */
-  --bg-muted: #2e3c43;     /* subtle raised surface, hover states */
+    /* Dark theme defaults */
+    --bg-primary: #1a2328; /* deepest background, page base */
+    --bg-secondary: #263238; /* card / panel surface */
+    --bg-muted: #2e3c43; /* subtle raised surface, hover states */
 
-  /* Text */
-  --text-primary: rgba(255, 255, 255, 0.92); /* headings, labels */
-  --text-secondary: rgba(255, 255, 255, 0.60); /* body, descriptions */
-  --text-muted: rgba(255, 255, 255, 0.35); /* placeholders, captions */
+    /* Text */
+    --text-primary: rgba(255, 255, 255, 0.92); /* headings, labels */
+    --text-secondary: rgba(255, 255, 255, 0.60); /* body, descriptions */
+    --text-muted: rgba(255, 255, 255, 0.35); /* placeholders, captions */
 
-  /* Accent (teal brand colour) */
-  --accent-primary: #75BEBF; /* main brand teal */
-  --accent-secondary: rgba(117, 190, 191, .20); /* ghost / outline tint */
-  --accent-muted: rgba(117, 190, 191, .08); /* very subtle fill */
+    /* Accent (teal brand colour) */
+    --accent-primary: #75BEBF; /* main brand teal */
+    --accent-secondary: rgba(117, 190, 191, .20); /* ghost / outline tint */
+    --accent-muted: rgba(117, 190, 191, .08); /* very subtle fill */
 
-  /* Borders */
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-accent: rgba(117, 190, 191, 0.40);
+    /* Borders */
+    --border-default: rgba(0, 0, 0, 0.08);
+    --border-accent: rgba(117, 190, 191, 0.40);
 
-  /* Shadows */
-  --shadow-card: 0 24px 64px rgba(0, 0, 0, 0.45);
+    /* Shadows */
+    --shadow-card: 0 24px 64px rgba(0, 0, 0, 0.45);
 
-  /* Grid background */
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--bg-primary) 0,
-    var(--bg-primary) var(--grid-size),
-    var(--bg-muted) var(--grid-size),
-    var(--bg-muted) calc(var(--grid-size) * 2)
-  );
-  background-size: var(--grid-size) var(--grid-size);
+    /* Grid background */
+    background-image: repeating-linear-gradient(
+            90deg,
+            var(--bg-primary) 0,
+            var(--bg-primary) var(--grid-size),
+            var(--bg-muted) var(--grid-size),
+            var(--bg-muted) calc(var(--grid-size) * 2)
+    );
+    background-size: var(--grid-size) var(--grid-size);
 }
 
 /* Light theme overrides */
 .light {
-  --bg-primary: #f5f7fa;
-  --bg-secondary: #ffffff;
-  --bg-muted: #e6e8ea;
-  --text-primary: #111111;
-  --text-secondary: #333333;
-  --text-muted: #555555;
-  --accent-primary: #2c7a7b; /* darker teal for light theme */
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-accent: rgba(44, 122, 123, 0.40);
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-muted: #e6e8ea;
+    --text-primary: #111111;
+    --text-secondary: #333333;
+    --text-muted: #555555;
+    --accent-primary: #2c7a7b; /* darker teal for light theme */
+    --border-default: rgba(0, 0, 0, 0.08);
+    --border-accent: rgba(44, 122, 123, 0.40);
 }
 
 @theme inline {
-  --color-background: var(--bg-primary);
-  --color-foreground: var(--text-primary);
-  /*add explicit names for colors like text primary text secondary, bg primary bg secondary*/
+    --color-background: var(--bg-primary);
+    --color-foreground: var(--text-primary);
+    /*add explicit names for colors like text primary text secondary, bg primary bg secondary*/
+    --color-background-primary: var(--bg-primary);
+    --color-background-secondary: var(--bg-secondary);
+    --color-background-muted: var(--bg-muted);
 
-  --color-background-primary: var(--bg-primary);
-  --color-background-secondary: var(--bg-secondary);
-  --color-background-muted: var(--bg-muted);
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
 
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
+    --color-accent-primary: var(--accent-primary);
+    --color-accent-secondary: var(--accent-secondary);
+    --color-accent-muted: var(--accent-muted);
 
-  --color-accent-primary: var(--accent-primary);
-  --color-accent-secondary: var(--accent-secondary);
-  --color-accent-muted: var(--accent-muted);
+    --color-border-default: var(--border-default);
+    --color-border-accent: var(--border-accent);
 
-  --color-border-default: var(--border-default);
-  --color-border-accent: var(--border-accent);
-
-  /* Inter is the default; Nexa is used explicitly for headings/descriptions */
-  --font-sans: var(--font-inter), sans-serif;
-  --font-display: var(--font-nexa), var(--font-inter), sans-serif;
-  --font-mono: var(--font-geist-mono);
+    /* Inter is the default; Nexa is used explicitly for headings/descriptions */
+    --font-sans: var(--font-inter), sans-serif;
+    --font-display: var(--font-nexa), var(--font-inter), sans-serif;
+    --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
 }
 
 .radix-themes {
-  /* All text defaults to Inter — safe for emails, inputs, user data */
-  --default-font-family: var(--font-sans);
-  /* Headings use Nexa for brand personality */
-  --heading-font-family: var(--font-display);
+    /* All text defaults to Inter — safe for emails, inputs, user data */
+    --default-font-family: var(--font-sans);
+    /* Headings use Nexa for brand personality */
+    --heading-font-family: var(--font-display);
 }
 
 /* Headings and descriptive text use Nexa */
 h1, h2, h3, h4, h5, h6,
 .font-display {
-  font-family: var(--font-display);
+    font-family: var(--font-display);
 }
 
 /* Ensure inputs, user-data fields, and anything that may contain
@@ -101,5 +100,5 @@ h1, h2, h3, h4, h5, h6,
 input, textarea, select,
 [data-user-content],
 .font-safe {
-  font-family: var(--font-sans);
+    font-family: var(--font-sans);
 }

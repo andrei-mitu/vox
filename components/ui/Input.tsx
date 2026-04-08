@@ -83,7 +83,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               color="red"
               size="1"
               role="alert"
-              className="text-right max-w-[min(100%,18rem)]"
+              className="text-right max-w-[min(100%,20rem)]"
             >
               {error}
             </Text>
