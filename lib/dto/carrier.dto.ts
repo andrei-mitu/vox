@@ -1,6 +1,13 @@
 import {z} from 'zod';
 import type {CarrierMode, CarrierStatus} from '@/lib/db/schema';
 
+export const CARRIER_MODE_LABELS: Record<CarrierMode, string> = {
+    air: 'Air',
+    ocean: 'Ocean',
+    road: 'Road',
+    rail: 'Rail',
+};
+
 // ---------------------------------------------------------------------------
 // Create carrier
 // ---------------------------------------------------------------------------

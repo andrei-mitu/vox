@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {Button, Dialog, Flex, Select, Text, TextArea, TextField} from '@radix-ui/themes';
 import type {CarrierDto, CreateCarrierInput} from '@/lib/dto/carrier.dto';
+import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
 
 interface CarrierDialogProps {
     workspaceSlug: string;
@@ -11,13 +12,6 @@ interface CarrierDialogProps {
     onOpenChange: (open: boolean) => void;
     onSuccess: (carrier: CarrierDto) => void;
 }
-
-const MODE_LABELS: Record<string, string> = {
-    air: 'Air',
-    ocean: 'Ocean',
-    road: 'Road',
-    rail: 'Rail',
-};
 
 const defaultForm = (): CreateCarrierInput => ({
     name: '',
@@ -138,7 +132,7 @@ export function CarrierDialog({
                                 >
                                     <Select.Trigger style={{width: '100%'}} />
                                     <Select.Content>
-                                        {Object.entries(MODE_LABELS).map(([value, label]) => (
+                                        {(Object.entries(CARRIER_MODE_LABELS) as [CreateCarrierInput['mode'], string][]).map(([value, label]) => (
                                             <Select.Item key={value} value={value}>
                                                 {label}
                                             </Select.Item>

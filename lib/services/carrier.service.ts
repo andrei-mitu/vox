@@ -1,12 +1,12 @@
 import {
     createCarrier,
     deleteCarrier,
-    findCarrierById,
     findCarriersByTeamId,
     updateCarrier,
 } from '@/lib/repositories/carrier.repository';
 import type {Carrier} from '@/lib/db/schema';
 import type {CarrierDto, CreateCarrierInput, UpdateCarrierInput} from '@/lib/dto/carrier.dto';
+import {isUniqueViolation} from '@/lib/db/errors';
 
 // ---------------------------------------------------------------------------
 // Mapping
@@ -27,15 +27,6 @@ function toCarrierDto(carrier: Carrier): CarrierDto {
         createdAt: carrier.createdAt.toISOString(),
         updatedAt: carrier.updatedAt.toISOString(),
     };
-}
-
-function isUniqueViolation(err: unknown): boolean {
-    return (
-        typeof err === 'object' &&
-        err !== null &&
-        'code' in err &&
-        (err as {code: unknown}).code === '23505'
-    );
 }
 
 // ---------------------------------------------------------------------------
@@ -112,10 +103,9 @@ export async function removeCarrier(
     id: string,
     teamId: string,
 ): Promise<{ok: true} | CarrierFailure> {
-    const carrier = await findCarrierById(id, teamId);
-    if (!carrier) {
+    const deleted = await deleteCarrier(id, teamId);
+    if (!deleted) {
         return {ok: false, status: 404, message: 'Carrier not found.'};
     }
-    await deleteCarrier(id, teamId);
     return {ok: true};
 }

@@ -1,6 +1,7 @@
 import {addTeamMember, createTeam, findAllTeams, findTeamBySlug, findTeamsByUserId} from '@/lib/repositories/team.repository';
 import type {CreateTeamInput, TeamDto} from '@/lib/dto/team.dto';
 import type {Team} from '@/lib/db/schema';
+import {isUniqueViolation} from '@/lib/db/errors';
 
 function toTeamDto(team: Team): TeamDto {
     return {
@@ -10,15 +11,6 @@ function toTeamDto(team: Team): TeamDto {
         logoUrl: team.logoUrl ?? null,
         visibility: team.visibility,
     };
-}
-
-function isUniqueViolation(err: unknown): boolean {
-    return (
-        typeof err === 'object' &&
-        err !== null &&
-        'code' in err &&
-        (err as { code: unknown }).code === '23505'
-    );
 }
 
 export async function getTeamsForUser(userId: string): Promise<TeamDto[]> {

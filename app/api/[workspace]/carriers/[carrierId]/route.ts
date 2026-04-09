@@ -3,14 +3,7 @@ import {assertWorkspaceAccess} from '@/lib/auth/workspace';
 import {updateExistingCarrier, removeCarrier} from '@/lib/services/carrier.service';
 import {parseUpdateCarrierBody} from '@/lib/dto/carrier.dto';
 import {ApiResponse} from '@/lib/api/response';
-
-async function readJsonBody(request: Request): Promise<unknown | null> {
-    try {
-        return await request.json();
-    } catch {
-        return null;
-    }
-}
+import {readJsonBody} from '@/lib/api/request';
 
 export async function PATCH(
     request: Request,

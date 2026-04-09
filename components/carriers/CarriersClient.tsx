@@ -2,20 +2,15 @@
 
 import {useState} from 'react';
 import {AlertDialog, Badge, Button, Flex, Heading, IconButton, Table, Text} from '@radix-ui/themes';
+import {Pencil, Trash2} from 'lucide-react';
 import {CarrierDialog} from './CarrierDialog';
 import type {CarrierDto} from '@/lib/dto/carrier.dto';
+import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
 
 interface CarriersClientProps {
     initialCarriers: CarrierDto[];
     workspaceSlug: string;
 }
-
-const MODE_LABELS: Record<string, string> = {
-    air: 'Air',
-    ocean: 'Ocean',
-    road: 'Road',
-    rail: 'Rail',
-};
 
 export function CarriersClient({
     initialCarriers,
@@ -106,7 +101,7 @@ export function CarriersClient({
                                 </Table.Cell>
                                 <Table.Cell>
                                     <Badge color="blue" variant="soft">
-                                        {MODE_LABELS[carrier.mode] ?? carrier.mode}
+                                        {CARRIER_MODE_LABELS[carrier.mode]}
                                     </Badge>
                                 </Table.Cell>
                                 <Table.Cell>
@@ -119,12 +114,12 @@ export function CarriersClient({
                                 </Table.Cell>
                                 <Table.Cell>
                                     {carrier.contactName ? (
-                                        <Flex direction="column" gap="0">
+                                        <>
                                             <Text size="2">{carrier.contactName}</Text>
                                             {carrier.contactEmail && (
-                                                <Text size="1" color="gray">{carrier.contactEmail}</Text>
+                                                <Text size="1" color="gray" as="p">{carrier.contactEmail}</Text>
                                             )}
-                                        </Flex>
+                                        </>
                                     ) : (
                                         <Text size="2" color="gray">—</Text>
                                     )}
@@ -137,7 +132,7 @@ export function CarriersClient({
                                             aria-label="Edit carrier"
                                             onClick={() => openEdit(carrier)}
                                         >
-                                            ✏️
+                                            <Pencil size={14} />
                                         </IconButton>
                                         <IconButton
                                             variant="ghost"
@@ -149,7 +144,7 @@ export function CarriersClient({
                                                 setDeleteTarget(carrier);
                                             }}
                                         >
-                                            🗑
+                                            <Trash2 size={14} />
                                         </IconButton>
                                     </Flex>
                                 </Table.Cell>
@@ -170,7 +165,10 @@ export function CarriersClient({
             <AlertDialog.Root
                 open={Boolean(deleteTarget)}
                 onOpenChange={(open) => {
-                    if (!open) setDeleteTarget(undefined);
+                    if (!open) {
+                        setDeleteTarget(undefined);
+                        setDeleteError(null);
+                    }
                 }}
             >
                 <AlertDialog.Content maxWidth="400px">
