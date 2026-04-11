@@ -2,8 +2,8 @@
 
 import {useState} from 'react';
 import {Button, Dialog, Flex, Select, Text, TextArea, TextField} from '@radix-ui/themes';
-import type {CarrierDto, CreateCarrierInput} from '@/lib/dto/carrier.dto';
 import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
+import type {CarrierDto, CreateCarrierInput} from '@/lib/dto/carrier.dto';
 
 interface CarrierDialogProps {
     workspaceSlug: string;
@@ -144,7 +144,7 @@ export function CarrierDialog({
                             <Flex direction="column" gap="1" flexGrow="1">
                                 <Text as="label" size="2" weight="medium">Status</Text>
                                 <Select.Root
-                                    value={form.status ?? 'active'}
+                                    value={form.status}
                                     onValueChange={(v) => set('status', v as CreateCarrierInput['status'])}
                                 >
                                     <Select.Trigger style={{width: '100%'}} />

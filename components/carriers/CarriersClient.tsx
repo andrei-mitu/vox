@@ -4,8 +4,8 @@ import {useState} from 'react';
 import {AlertDialog, Badge, Button, Flex, Heading, IconButton, Table, Text} from '@radix-ui/themes';
 import {Pencil, Trash2} from 'lucide-react';
 import {CarrierDialog} from './CarrierDialog';
-import type {CarrierDto} from '@/lib/dto/carrier.dto';
 import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
+import type {CarrierDto} from '@/lib/dto/carrier.dto';
 
 interface CarriersClientProps {
     initialCarriers: CarrierDto[];
@@ -35,9 +35,11 @@ export function CarriersClient({
 
     function handleSaved(saved: CarrierDto): void {
         setCarriers((prev) => {
-            const idx = prev.findIndex((c) => c.id === saved.id);
-            if (idx === -1) return [...prev, saved].sort((a, b) => a.name.localeCompare(b.name));
-            return prev.map((c) => (c.id === saved.id ? saved : c));
+            const exists = prev.some((c) => c.id === saved.id);
+            const next = exists
+                ? prev.map((c) => (c.id === saved.id ? saved : c))
+                : [...prev, saved];
+            return next.sort((a, b) => a.name.localeCompare(b.name));
         });
     }
 
@@ -155,6 +157,7 @@ export function CarriersClient({
             )}
 
             <CarrierDialog
+                key={editTarget?.id ?? 'new'}
                 workspaceSlug={workspaceSlug}
                 carrier={editTarget}
                 open={dialogOpen}
