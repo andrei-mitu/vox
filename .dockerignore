@@ -24,9 +24,10 @@ node_modules
 Dockerfile
 docker-compose*.yml
 
-# Vercel (no longer used for deployment, kept for reference)
-.vercel
+# Deployment configs — not needed inside the image
+fly.toml
 vercel.json
+.vercel
 
 # Documentation
 *.md

@@ -1,0 +1,55 @@
+# Fly.io application configuration — https://fly.io/docs/reference/configuration/
+#
+# ─── One-time local setup (run once from your machine, then never again) ──────
+#
+#  1. Install flyctl:
+#       curl -L https://fly.io/install.sh | sh
+#
+#  2. Log in and create the app:
+#       fly auth login
+#       fly apps create <your-app-name>   # must be globally unique on Fly.io
+#       # Update the `app` field below with the name you chose
+#
+#  3. Set runtime secrets (stored encrypted on Fly, injected at container start):
+#       fly secrets set \
+#         DATABASE_URL="postgresql://USER:PASS@HOST:5432/DB" \
+#         JWT_SECRET="$(openssl rand -base64 32)"
+#
+#  4. Create a deploy token and add it to GitHub:
+#       fly tokens create deploy -x 999999h
+#       # Add the output as FLY_API_TOKEN in:
+#       # GitHub → repo Settings → Environments → production → Secrets
+#
+# After this, every merge to master deploys automatically via GitHub Actions.
+# ─────────────────────────────────────────────────────────────────────────────
+
+app = "vox"            # ← replace with your chosen app name
+primary_region = "ams" # ← pick the region closest to you:
+                       #   ams (Amsterdam), fra (Frankfurt), lhr (London)
+                       #   iad (Virginia), ord (Chicago), sin (Singapore)
+
+[build]
+  # Uses the Dockerfile in this repo.
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # "off" keeps one machine always running — no cold-start delays.
+  # This fits within Fly's free allowance (3 shared VMs included).
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "256mb"
+
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "15s"
+  method = "GET"
+  path = "/"
+  protocol = "http"
+  timeout = "5s"
+  type = "http"

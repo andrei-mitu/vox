@@ -11,25 +11,12 @@ name: CI / CD
 #
 #    DATABASE_URL     Production postgres connection string.
 #                     Format: postgresql://USER:PASS@HOST:5432/DB
-#                     Used by GitHub Actions to run migrations before deploy.
-#                     Also set as DATABASE_URL on the server's /opt/vox/.env.
+#                     Used here to run migrations before deploy.
+#                     The same value must also be set via `fly secrets set`.
 #
-#    SERVER_HOST      IP address or hostname of the production server.
+#    FLY_API_TOKEN    Deploy token from: fly tokens create deploy -x 999999h
 #
-#    SERVER_USER      SSH username on the server (e.g. "ubuntu", "deploy").
-#
-#    SERVER_SSH_KEY   Private SSH key for the deploy user.
-#                     Paste the full PEM content (-----BEGIN...-----END...).
-#                     Add the matching public key to ~/.ssh/authorized_keys on
-#                     the server.
-#
-# 3. Server setup (one-time):
-#    a) Install Docker (with the Compose plugin): https://docs.docker.com/engine/install
-#    b) mkdir -p /opt/vox
-#    c) Copy docker-compose.prod.yml to /opt/vox/docker-compose.yml
-#    d) Create /opt/vox/.env:
-#         DATABASE_URL=postgresql://...
-#         JWT_SECRET=$(openssl rand -base64 32)
+# 3. One-time Fly.io setup — see fly.toml for full instructions.
 #
 # 4. Protect the master branch:
 #    Settings → Branches → Add rule → require status checks to pass:
@@ -37,10 +24,8 @@ name: CI / CD
 #
 # ─────────────────────────────────────────────────────────────────────────────
 
-# GITHUB_TOKEN needs write access to packages to push the image to ghcr.io.
 permissions:
   contents: read
-  packages: write
 
 on:
   push:
@@ -99,12 +84,14 @@ jobs:
         run: bun run build
         env:
           # DB connection is lazy — next build never opens a real connection.
-          # Safe placeholders that satisfy any import-time env presence checks.
-          # Real values are never passed to the build — see Dockerfile comments.
+          # Safe placeholders; real values live in Fly secrets (runtime only).
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/vox
           JWT_SECRET: ci-build-placeholder-not-real
 
-  # ── Job 3: Docker build → push image to ghcr.io on master ────────────────
+  # ── Job 3: Docker build — validates the Dockerfile end-to-end ─────────────
+  # This is the gate: if the image doesn't build, nothing deploys.
+  # Fly.io builds the image again remotely during deploy (using its own cache),
+  # so there is no push step here — just validation.
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
@@ -113,49 +100,27 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # Login is required both to push (master) and to read the layer cache (PRs).
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            # Immutable tag per commit — safe to use for rollbacks
-            type=sha,prefix=sha-
-            # Mutable "latest" tag — only set on master, used by the server
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-
-      - name: Build and push
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          # Push only when merging to master; PRs only validate the build.
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # ── Job 4: Deploy to production (master only, after all CI jobs pass) ─────
   # Pipeline:
-  #   1. Run DB migrations (schema always ahead of running code)
-  #   2. Log in to ghcr.io on the server using GITHUB_TOKEN
-  #   3. Pull the new image
-  #   4. Recreate the container; wait for the healthcheck to pass
-  #   5. Prune dangling images
+  #   1. Run DB migrations (schema is always ahead of the running code)
+  #   2. flyctl deploy --remote-only  (Fly builds on its remote builders and
+  #      rolls out the new container; waits for health checks to pass)
   deploy:
-    name: Deploy to Production
+    name: Deploy to Fly.io
     runs-on: ubuntu-latest
     needs: [check, build, docker]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     environment:
       name: production
+      url: https://${{ env.FLY_APP }}.fly.dev
 
     steps:
       - uses: actions/checkout@v4
@@ -173,37 +138,19 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Migrations run before the new container starts — schema is always in sync.
+      # Migrations run before the new container goes live.
+      # Drizzle tracks applied migrations — re-running is always safe.
       - name: Run database migrations
         run: bun run db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Configure SSH
-        run: |
-          install -m 700 -d ~/.ssh
-          install -m 600 /dev/null ~/.ssh/deploy_key
-          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+      - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      # Pipe the short-lived GITHUB_TOKEN to docker login on the server.
-      # This is enough time to pull the image — no long-lived credentials stored.
-      - name: Authenticate Docker on server
+      # Fly builds the image on its remote builders (using the Dockerfile),
+      # then rolls out the new version and waits for health checks to pass.
+      # If the build or health check fails, the old version keeps running.
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
         env:
-          SERVER: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
-        run: |
-          printf '%s' "${{ secrets.GITHUB_TOKEN }}" | \
-            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SERVER" \
-                "docker login ghcr.io -u '${{ github.actor }}' --password-stdin"
-
-      # Pull the image that was pushed in the docker job above, then recreate
-      # the container. --wait blocks until the healthcheck passes (or fails).
-      - name: Deploy container
-        env:
-          SERVER: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SERVER" "
-            cd /opt/vox &&
-            docker compose pull app &&
-            docker compose up -d --wait app &&
-            docker image prune -f
-          "
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
