@@ -21,17 +21,11 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# The DB connection is lazy — next build never opens a real connection.
-# DATABASE_URL and JWT_SECRET are injected as BuildKit secret mounts so they
-# are never baked into any image layer (not even the intermediate builder layer).
-# docker build --secret id=DATABASE_URL,env=DATABASE_URL \
-#              --secret id=JWT_SECRET,env=JWT_SECRET .
-# In CI they fall back to safe placeholder defaults via ARG.
-ARG DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/vox
-ARG JWT_SECRET=placeholder-not-used-at-build-time
-ENV DATABASE_URL=$DATABASE_URL
-ENV JWT_SECRET=$JWT_SECRET
-
+# DATABASE_URL and JWT_SECRET are NOT needed at build time.
+# The DB connection is lazy (never called during next build), and JWT signing
+# only happens at request time. Injecting secrets at build time would bake them
+# into the image layer history — never do that.
+# Both values must be provided at runtime via environment variables or env_file.
 RUN bun run build
 
 # ─── Stage 3: Production runner ───────────────────────────────────────────────
@@ -56,5 +50,7 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# DATABASE_URL and JWT_SECRET must be injected at runtime via environment variables.
+# Inject at runtime (docker run -e / docker compose env_file):
+#   DATABASE_URL=postgresql://...
+#   JWT_SECRET=...
 CMD ["node", "server.js"]

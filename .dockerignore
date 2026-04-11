@@ -24,8 +24,9 @@ node_modules
 Dockerfile
 docker-compose*.yml
 
-# Vercel
+# Vercel (no longer used for deployment, kept for reference)
 .vercel
+vercel.json
 
 # Documentation
 *.md

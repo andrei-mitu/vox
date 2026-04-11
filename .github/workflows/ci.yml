@@ -3,34 +3,44 @@ name: CI / CD
 # ─── GitHub Setup (one-time, done in the GitHub UI) ──────────────────────────
 #
 # 1. Create a "production" environment:
-#    GitHub → repo Settings → Environments → New environment → name it "production"
-#    Recommended protection: tick "Deployment branches" → select "master" only.
+#    GitHub → repo Settings → Environments → New environment → "production"
+#    Recommended protection: Deployment branches → select "master" only.
 #
-# 2. Add these secrets to the "production" environment
-#    (Settings → Environments → production → Environment secrets):
+# 2. Add these secrets to the "production" environment:
+#    (Settings → Environments → production → Environment secrets)
 #
-#    DATABASE_URL      Production postgres URL — used to run migrations before deploy.
-#                      Format: postgresql://USER:PASS@HOST:5432/DB
-#                      Same value you set in Vercel env vars for runtime.
+#    DATABASE_URL     Production postgres connection string.
+#                     Format: postgresql://USER:PASS@HOST:5432/DB
+#                     Used by GitHub Actions to run migrations before deploy.
+#                     Also set as DATABASE_URL on the server's /opt/vox/.env.
 #
-#    VERCEL_TOKEN      Personal token from vercel.com/account/tokens
+#    SERVER_HOST      IP address or hostname of the production server.
 #
-#    VERCEL_ORG_ID     Found in vercel.com → team Settings → General → Team ID
-#                      (or run `bunx vercel link` locally and read .vercel/project.json)
+#    SERVER_USER      SSH username on the server (e.g. "ubuntu", "deploy").
 #
-#    VERCEL_PROJECT_ID Found in vercel.com → project Settings → General → Project ID
-#                      (or read .vercel/project.json after `bunx vercel link`)
+#    SERVER_SSH_KEY   Private SSH key for the deploy user.
+#                     Paste the full PEM content (-----BEGIN...-----END...).
+#                     Add the matching public key to ~/.ssh/authorized_keys on
+#                     the server.
 #
-# 3. Vercel environment variables (set separately in the Vercel dashboard):
-#    DATABASE_URL   — runtime DB connection (same as GitHub secret above)
-#    JWT_SECRET     — JWT signing secret (`openssl rand -base64 32`)
+# 3. Server setup (one-time):
+#    a) Install Docker (with the Compose plugin): https://docs.docker.com/engine/install
+#    b) mkdir -p /opt/vox
+#    c) Copy docker-compose.prod.yml to /opt/vox/docker-compose.yml
+#    d) Create /opt/vox/.env:
+#         DATABASE_URL=postgresql://...
+#         JWT_SECRET=$(openssl rand -base64 32)
 #
-# 4. Protect the main branch:
-#    Settings → Branches → Add rule → require status checks:
+# 4. Protect the master branch:
+#    Settings → Branches → Add rule → require status checks to pass:
 #    "Typecheck & Lint", "Next.js Build", "Docker Build"
-#    This ensures no merge into master can happen unless CI passes.
 #
 # ─────────────────────────────────────────────────────────────────────────────
+
+# GITHUB_TOKEN needs write access to packages to push the image to ghcr.io.
+permissions:
+  contents: read
+  packages: write
 
 on:
   push:
@@ -65,7 +75,7 @@ jobs:
       - name: Lint
         run: bun run lint
 
-  # ── Job 2: Next.js build (catches import errors, route-level failures) ────
+  # ── Job 2: Next.js build ──────────────────────────────────────────────────
   build:
     name: Next.js Build
     runs-on: ubuntu-latest
@@ -89,12 +99,12 @@ jobs:
         run: bun run build
         env:
           # DB connection is lazy — next build never opens a real connection.
-          # Safe placeholders; production values live in the GitHub "production"
-          # environment and in Vercel env vars (not here).
+          # Safe placeholders that satisfy any import-time env presence checks.
+          # Real values are never passed to the build — see Dockerfile comments.
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/vox
           JWT_SECRET: ci-build-placeholder-not-real
 
-  # ── Job 3: Docker image build (validates Dockerfile end-to-end) ───────────
+  # ── Job 3: Docker build → push image to ghcr.io on master ────────────────
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
@@ -103,32 +113,49 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      # Login is required both to push (master) and to read the layer cache (PRs).
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            # Immutable tag per commit — safe to use for rollbacks
+            type=sha,prefix=sha-
+            # Mutable "latest" tag — only set on master, used by the server
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: false
-          # GHA layer cache — subsequent runs reuse unchanged layers.
+          # Push only when merging to master; PRs only validate the build.
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # ARG defaults in the Dockerfile kick in when these are not supplied.
-          # No real secrets are passed here — Docker build-args end up in layer
-          # history, so production values must never be passed this way.
 
-  # ── Job 4: Deploy to production ───────────────────────────────────────────
-  # Runs only after all three CI jobs pass, and only on a push to main
-  # (i.e. after a PR is merged). PRs never trigger a deploy.
+  # ── Job 4: Deploy to production (master only, after all CI jobs pass) ─────
+  # Pipeline:
+  #   1. Run DB migrations (schema always ahead of running code)
+  #   2. Log in to ghcr.io on the server using GITHUB_TOKEN
+  #   3. Pull the new image
+  #   4. Recreate the container; wait for the healthcheck to pass
+  #   5. Prune dangling images
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [check, build, docker]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-
-    # "production" environment gates this job behind the secrets and protection
-    # rules you configured in GitHub → Settings → Environments → production.
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -146,24 +173,37 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Migrations run here — before the new code goes live — so the schema is
-      # always ahead of (or in sync with) the running application.
-      # Drizzle tracks applied migrations, so re-running is always safe.
+      # Migrations run before the new container starts — schema is always in sync.
       - name: Run database migrations
         run: bun run db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # Trigger Vercel to pull the latest commit and build it.
-      # Vercel uses the env vars you set in the Vercel dashboard (DATABASE_URL,
-      # JWT_SECRET) for the build and runtime — GitHub only stores what GitHub
-      # Actions actually uses.
-      - name: Deploy to Vercel
-        id: deploy
+      - name: Configure SSH
         run: |
-          url=$(bunx vercel deploy --prod --yes --token "$VERCEL_TOKEN")
-          echo "url=$url" >> "$GITHUB_OUTPUT"
+          install -m 700 -d ~/.ssh
+          install -m 600 /dev/null ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+
+      # Pipe the short-lived GITHUB_TOKEN to docker login on the server.
+      # This is enough time to pull the image — no long-lived credentials stored.
+      - name: Authenticate Docker on server
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SERVER: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
+        run: |
+          printf '%s' "${{ secrets.GITHUB_TOKEN }}" | \
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SERVER" \
+                "docker login ghcr.io -u '${{ github.actor }}' --password-stdin"
+
+      # Pull the image that was pushed in the docker job above, then recreate
+      # the container. --wait blocks until the healthcheck passes (or fails).
+      - name: Deploy container
+        env:
+          SERVER: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$SERVER" "
+            cd /opt/vox &&
+            docker compose pull app &&
+            docker compose up -d --wait app &&
+            docker image prune -f
+          "

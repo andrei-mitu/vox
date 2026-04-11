@@ -1,12 +1,13 @@
-# Local development database.
+# Local development environment.
 #
 # Usage:
-#   docker compose up -d          # start postgres in the background
-#   docker compose down           # stop (data is preserved in the volume)
-#   docker compose down -v        # stop AND delete all data  ← destructive
+#   docker compose up -d           # start postgres + app (full stack)
+#   docker compose up -d db        # start only postgres, run app with: bun run dev
+#   docker compose down            # stop (data is preserved in the volume)
+#   docker compose down -v         # stop AND delete all data  ← destructive
 #
-# Run the app separately with:   bun run dev
-# .env.local should contain:     DATABASE_URL=postgresql://vox:vox@localhost:5432/vox
+# Requires a .env file (copy .env.example) with at least:
+#   JWT_SECRET=some-local-dev-secret
 
 services:
   db:
@@ -25,6 +26,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # db hostname = service name; resolves inside the Docker network
+      DATABASE_URL: postgresql://vox:vox@db:5432/vox
+      # Reads JWT_SECRET from .env — error if missing (no silent empty secret)
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (copy .env.example)}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # node is always available in the runner image; no extra tools needed
+      test: >
+        CMD-SHELL node -e
+        "require('http').get('http://localhost:3000',r=>r.statusCode<500?process.exit(0):process.exit(1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   # Named volume — data survives `docker compose down`.
