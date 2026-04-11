@@ -1,0 +1,22 @@
+.git
+.gitignore
+.github
+
+# built output — builder stage starts clean anyway
+.next
+node_modules
+
+# local env files — secrets are injected at runtime via Fly.io / CI
+.env
+.env.local
+.env.*.local
+
+# tooling / docs not needed in the image
+*.md
+.editorconfig
+.eslintrc*
+eslint.config.*
+
+# db/seeds is included: seed.ts reads the SQL files at runtime via flyctl ssh console
+
+# scripts are needed in the image for flyctl ssh console -C "bun run db:seed"

@@ -1,0 +1,31 @@
+# fly.toml — Fly.io app configuration
+# Rename "vox" below to match your actual Fly.io app name.
+# Create the app once with: flyctl apps create <your-app-name>
+
+app = "vox"
+primary_region = "iad"   # closest free-tier region to US East; change to e.g. "lhr" for EU
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Run database migrations before the new release takes traffic.
+# DATABASE_URL must be set as a Fly.io secret (flyctl secrets set DATABASE_URL=...).
+[deploy]
+  release_command = "bun run db:migrate"
+
+[env]
+  PORT     = "3000"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port       = 3000
+  force_https         = true
+  auto_stop_machines  = "stop"   # stop idle machines to stay within free allowance
+  auto_start_machines = true     # wake on first request
+  min_machines_running = 1       # keep 1 always warm (fits in free-tier compute hours)
+  processes           = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus     = 1
+  memory   = "256mb"
