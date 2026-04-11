@@ -11,15 +11,6 @@ export async function findCarriersByTeamId(teamId: string): Promise<Carrier[]> {
         .orderBy(carriers.name);
 }
 
-export async function findCarrierById(id: string, teamId: string): Promise<Carrier | null> {
-    const rows = await db()
-        .select()
-        .from(carriers)
-        .where(and(eq(carriers.id, id), eq(carriers.teamId, teamId)))
-        .limit(1);
-    return rows[0] ?? null;
-}
-
 export async function createCarrier(data: NewCarrier): Promise<Carrier> {
     const rows = await db().insert(carriers).values(data).returning();
     return rows[0]!;
