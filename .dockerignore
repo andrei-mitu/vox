@@ -1,0 +1,24 @@
+.git
+.gitignore
+.github
+
+# built output — builder stage starts clean anyway
+.next
+node_modules
+
+# local env files — secrets are injected at runtime via Fly.io / CI
+.env
+.env.local
+.env.*.local
+
+# tooling / docs not needed in the image
+*.md
+.editorconfig
+.eslintrc*
+eslint.config.*
+
+# dev DB tooling
+db/seeds
+
+# scripts only run locally / in CI
+scripts
