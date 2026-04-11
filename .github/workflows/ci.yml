@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 # Cancel any in-flight deploy when a newer push to main arrives.
 concurrency:
@@ -68,11 +68,11 @@ jobs:
       - name: Destroy stopped machines
         run: |
           flyctl machines list --json | python3 -c "
-import sys, json, subprocess
-for m in json.load(sys.stdin):
-    if m['state'] == 'stopped':
-        subprocess.run(['flyctl', 'machines', 'destroy', m['id'], '--force'], check=False)
-        print('destroyed', m['id'])
-"
+          import sys, json, subprocess
+          for m in json.load(sys.stdin):
+            if m['state'] == 'stopped':
+              subprocess.run(['flyctl', 'machines', 'destroy', m['id'], '--force'], check=False)
+              print('destroyed', m['id'])
+          "
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
