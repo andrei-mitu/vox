@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel any in-flight deploy when a newer push to main arrives.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ── 1. Static checks (runs on every push and every PR) ──────────────────────
   test:
@@ -17,7 +22,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.2"   # pin to match oven/bun:1.2.23-alpine in Dockerfile
 
       - uses: actions/cache@v4
         with:
@@ -48,11 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@1.6   # pinned; was @master (supply-chain risk)
 
       - name: Build image & deploy to Fly.io
         run: flyctl deploy --remote-only

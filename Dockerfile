@@ -1,12 +1,12 @@
 # ── Stage 1: install dependencies ─────────────────────────────────────────────
-FROM oven/bun:1.2-alpine AS deps
+FROM oven/bun:1.2.23-alpine AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # ── Stage 2: build Next.js ─────────────────────────────────────────────────────
-FROM oven/bun:1.2-alpine AS builder
+FROM oven/bun:1.2.23-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -15,7 +15,10 @@ COPY . .
 RUN bun run build
 
 # ── Stage 3: production runner ─────────────────────────────────────────────────
-FROM oven/bun:1.2-alpine AS runner
+# Note: node_modules includes devDependencies because drizzle-kit (a devDependency)
+# is required by the Fly.io release_command that runs db migrations.
+# To slim the image, move drizzle-kit to dependencies so --production works.
+FROM oven/bun:1.2.23-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
