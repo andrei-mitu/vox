@@ -20,5 +20,4 @@ eslint.config.*
 # dev DB tooling
 db/seeds
 
-# scripts only run locally / in CI
-scripts
+# scripts are needed in the image for flyctl ssh console -C "bun run db:seed"
