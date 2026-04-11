@@ -1,14 +1,14 @@
 'use client';
 
-import { useLayoutEffect, useState } from 'react';
+import {useState} from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, LogOut, Plus } from 'lucide-react';
-import { Tooltip } from '@radix-ui/themes';
-import { getNavItems } from './nav-config';
-import { SidebarNavItem } from './nav-item';
-import { ThemeToggleButton } from '@/components/theme/theme-toggle';
-import { VoxLogo } from '@/components/ui/vox-logo';
-import { cn } from '@/lib/utils';
+import {ChevronLeft, ChevronRight, LogOut, Plus} from 'lucide-react';
+import {Tooltip} from '@radix-ui/themes';
+import {getNavItems} from './nav-config';
+import {SidebarNavItem} from './nav-item';
+import {ThemeToggleButton} from '@/components/theme/theme-toggle';
+import {VoxLogo} from '@/components/ui/vox-logo';
+import {cn} from '@/lib/utils';
 
 interface SidebarProps {
     user: {
@@ -22,11 +22,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ user, workspace }: SidebarProps) {
-    const [collapsed, setCollapsed] = useState(false);
-
-    useLayoutEffect(() => {
-        setCollapsed(localStorage.getItem('sidebar-collapsed') === 'true');
-    }, []);
+    const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
 
     const toggle = () => {
         setCollapsed(prev => {
