@@ -25,6 +25,7 @@ export function Sidebar({ user, workspace }: SidebarProps) {
     const [collapsed, setCollapsed] = useState(false);
 
     useLayoutEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCollapsed(localStorage.getItem('sidebar-collapsed') === 'true');
     }, []);
 

@@ -1,0 +1,31 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies — re-installed during Docker build
+node_modules
+.bun
+
+# Next.js build output — rebuilt during Docker build
+.next
+
+# Secrets — must never end up inside the image
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Dev tooling
+.vscode
+.editorconfig
+
+# Docker files — not needed inside the image
+Dockerfile
+docker-compose*.yml
+
+# Vercel
+.vercel
+
+# Documentation
+*.md

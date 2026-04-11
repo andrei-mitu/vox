@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+    reactCompiler: true,
+    // Produces a self-contained server in .next/standalone — required for Docker.
+    // Vercel ignores this setting and uses its own build pipeline.
+    output: 'standalone',
 };
 
 export default nextConfig;

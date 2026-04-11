@@ -1,5 +1,13 @@
 name: CI
 
+# Runs on every PR and on every push to main (post-merge).
+# Three jobs run in parallel — all must pass before Vercel deploys.
+#
+# Deployment: Vercel listens to pushes on main and auto-deploys.
+# The build command in vercel.json is: bun run db:migrate && bun run build
+# To gate Vercel behind this CI: enable "Ignored Build Step" or required
+# status checks in your GitHub branch protection rules for main.
+
 on:
   push:
     branches: [main]
@@ -7,6 +15,7 @@ on:
     branches: [main]
 
 jobs:
+  # ── Job 1: Static checks (fast) ───────────────────────────────────────────
   check:
     name: Typecheck & Lint
     runs-on: ubuntu-latest
@@ -31,3 +40,52 @@ jobs:
 
       - name: Lint
         run: bun run lint
+
+  # ── Job 2: Next.js build (catches import errors, missing env, etc.) ───────
+  build:
+    name: Next.js Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+        env:
+          # The DB connection is lazy — next build never opens a real connection.
+          # These placeholders satisfy any env-var checks that run at import time.
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/vox
+          JWT_SECRET: ci-build-placeholder-not-real
+
+  # ── Job 3: Docker image build (validates Dockerfile end-to-end) ───────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          # Layer cache — subsequent runs reuse unchanged layers (much faster).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/vox
+            JWT_SECRET=ci-build-placeholder-not-real

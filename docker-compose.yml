@@ -1,0 +1,32 @@
+# Local development database.
+#
+# Usage:
+#   docker compose up -d          # start postgres in the background
+#   docker compose down           # stop (data is preserved in the volume)
+#   docker compose down -v        # stop AND delete all data  ← destructive
+#
+# Run the app separately with:   bun run dev
+# .env.local should contain:     DATABASE_URL=postgresql://vox:vox@localhost:5432/vox
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vox
+      POSTGRES_PASSWORD: vox
+      POSTGRES_DB: vox
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vox -d vox"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  # Named volume — data survives `docker compose down`.
+  # Stored at: /var/lib/docker/volumes/vox_postgres_data/_data
+  postgres_data:

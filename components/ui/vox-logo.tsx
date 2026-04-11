@@ -20,6 +20,7 @@ export function VoxLogo({className, width = 100, height = 50}: VoxLogoProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
