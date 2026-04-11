@@ -1,14 +1,7 @@
 import {signIn} from '@/lib/services/auth.service';
 import {parseLoginBody} from '@/lib/dto/auth.dto';
 import {ApiResponse} from '@/lib/api/response';
-
-async function readJsonBody(request: Request): Promise<unknown | null> {
-    try {
-        return await request.json();
-    } catch {
-        return null;
-    }
-}
+import {readJsonBody} from '@/lib/api/request';
 
 export async function POST(request: Request) {
     try {
