@@ -17,7 +17,6 @@ node_modules
 .eslintrc*
 eslint.config.*
 
-# dev DB tooling
-db/seeds
+# db/seeds is included: seed.ts reads the SQL files at runtime via flyctl ssh console
 
 # scripts are needed in the image for flyctl ssh console -C "bun run db:seed"
