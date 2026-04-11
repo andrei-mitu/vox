@@ -1,18 +1,42 @@
-name: CI
+name: CI / CD
 
-# Runs on every PR and on every push to main (post-merge).
-# Three jobs run in parallel — all must pass before Vercel deploys.
+# ─── GitHub Setup (one-time, done in the GitHub UI) ──────────────────────────
 #
-# Deployment: Vercel listens to pushes on main and auto-deploys.
-# The build command in vercel.json is: bun run db:migrate && bun run build
-# To gate Vercel behind this CI: enable "Ignored Build Step" or required
-# status checks in your GitHub branch protection rules for main.
+# 1. Create a "production" environment:
+#    GitHub → repo Settings → Environments → New environment → name it "production"
+#    Recommended protection: tick "Deployment branches" → select "master" only.
+#
+# 2. Add these secrets to the "production" environment
+#    (Settings → Environments → production → Environment secrets):
+#
+#    DATABASE_URL      Production postgres URL — used to run migrations before deploy.
+#                      Format: postgresql://USER:PASS@HOST:5432/DB
+#                      Same value you set in Vercel env vars for runtime.
+#
+#    VERCEL_TOKEN      Personal token from vercel.com/account/tokens
+#
+#    VERCEL_ORG_ID     Found in vercel.com → team Settings → General → Team ID
+#                      (or run `bunx vercel link` locally and read .vercel/project.json)
+#
+#    VERCEL_PROJECT_ID Found in vercel.com → project Settings → General → Project ID
+#                      (or read .vercel/project.json after `bunx vercel link`)
+#
+# 3. Vercel environment variables (set separately in the Vercel dashboard):
+#    DATABASE_URL   — runtime DB connection (same as GitHub secret above)
+#    JWT_SECRET     — JWT signing secret (`openssl rand -base64 32`)
+#
+# 4. Protect the main branch:
+#    Settings → Branches → Add rule → require status checks:
+#    "Typecheck & Lint", "Next.js Build", "Docker Build"
+#    This ensures no merge into master can happen unless CI passes.
+#
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   # ── Job 1: Static checks (fast) ───────────────────────────────────────────
@@ -41,7 +65,7 @@ jobs:
       - name: Lint
         run: bun run lint
 
-  # ── Job 2: Next.js build (catches import errors, missing env, etc.) ───────
+  # ── Job 2: Next.js build (catches import errors, route-level failures) ────
   build:
     name: Next.js Build
     runs-on: ubuntu-latest
@@ -64,8 +88,9 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          # The DB connection is lazy — next build never opens a real connection.
-          # These placeholders satisfy any env-var checks that run at import time.
+          # DB connection is lazy — next build never opens a real connection.
+          # Safe placeholders; production values live in the GitHub "production"
+          # environment and in Vercel env vars (not here).
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/vox
           JWT_SECRET: ci-build-placeholder-not-real
 
@@ -83,9 +108,62 @@ jobs:
         with:
           context: .
           push: false
-          # Layer cache — subsequent runs reuse unchanged layers (much faster).
+          # GHA layer cache — subsequent runs reuse unchanged layers.
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/vox
-            JWT_SECRET=ci-build-placeholder-not-real
+          # ARG defaults in the Dockerfile kick in when these are not supplied.
+          # No real secrets are passed here — Docker build-args end up in layer
+          # history, so production values must never be passed this way.
+
+  # ── Job 4: Deploy to production ───────────────────────────────────────────
+  # Runs only after all three CI jobs pass, and only on a push to main
+  # (i.e. after a PR is merged). PRs never trigger a deploy.
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [check, build, docker]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    # "production" environment gates this job behind the secrets and protection
+    # rules you configured in GitHub → Settings → Environments → production.
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Migrations run here — before the new code goes live — so the schema is
+      # always ahead of (or in sync with) the running application.
+      # Drizzle tracks applied migrations, so re-running is always safe.
+      - name: Run database migrations
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # Trigger Vercel to pull the latest commit and build it.
+      # Vercel uses the env vars you set in the Vercel dashboard (DATABASE_URL,
+      # JWT_SECRET) for the build and runtime — GitHub only stores what GitHub
+      # Actions actually uses.
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          url=$(bunx vercel deploy --prod --yes --token "$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

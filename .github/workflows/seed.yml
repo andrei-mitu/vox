@@ -11,8 +11,9 @@ jobs:
   seed:
     name: Run DB Seed
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    # Uses the "production" environment so DATABASE_URL comes from the scoped
+    # environment secret, not a loose repository-level secret.
+    environment: production
     steps:
       - name: Confirm intent
         run: |
@@ -32,3 +33,5 @@ jobs:
 
       - name: Seed
         run: bun run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

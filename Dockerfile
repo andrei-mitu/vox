@@ -11,19 +11,26 @@ RUN bun install --frozen-lockfile
 
 # ─── Stage 2: Build the application ──────────────────────────────────────────
 FROM node:20-alpine AS builder
+# libc6-compat is needed by bun and some native-adjacent packages on musl Alpine.
+RUN apk add --no-cache libc6-compat
 RUN npm install -g bun
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# The DB connection is lazy — it never runs at build time.
-# These are safe placeholders so `next build` succeeds without a real database.
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# The DB connection is lazy — next build never opens a real connection.
+# DATABASE_URL and JWT_SECRET are injected as BuildKit secret mounts so they
+# are never baked into any image layer (not even the intermediate builder layer).
+# docker build --secret id=DATABASE_URL,env=DATABASE_URL \
+#              --secret id=JWT_SECRET,env=JWT_SECRET .
+# In CI they fall back to safe placeholder defaults via ARG.
 ARG DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/vox
 ARG JWT_SECRET=placeholder-not-used-at-build-time
 ENV DATABASE_URL=$DATABASE_URL
 ENV JWT_SECRET=$JWT_SECRET
-ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN bun run build
 
