@@ -37,7 +37,7 @@ jobs:
         run: bun run typecheck
 
       - name: Lint
-        run: eslint
+        run: bunx eslint
 
   # ── 2. Build Docker image & deploy (push to main only) ─────────────────────
   #
