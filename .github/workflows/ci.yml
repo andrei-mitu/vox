@@ -67,12 +67,11 @@ jobs:
 
       - name: Destroy stopped machines
         run: |
-          flyctl machines list --json | python3 -c "
-import sys, json, subprocess
-for m in json.load(sys.stdin):
-    if m['state'] == 'stopped':
-        subprocess.run(['flyctl', 'machines', 'destroy', m['id'], '--force'], check=False)
-        print('destroyed', m['id'])
-"
+          flyctl machines list --json \
+            | jq -r '.[] | select(.state == "stopped") | .id' \
+            | while IFS= read -r id; do
+                flyctl machines destroy "$id" --force
+                echo "destroyed $id"
+              done
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
