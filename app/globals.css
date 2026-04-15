@@ -12,17 +12,17 @@
 
     /* Text */
     --text-primary: rgba(255, 255, 255, 0.92); /* headings, labels */
-    --text-secondary: rgba(255, 255, 255, 0.60); /* body, descriptions */
+    --text-secondary: rgba(255, 255, 255, 0.6); /* body, descriptions */
     --text-muted: rgba(255, 255, 255, 0.35); /* placeholders, captions */
 
     /* Accent (teal brand colour) */
-    --accent-primary: #75BEBF; /* main brand teal */
-    --accent-secondary: rgba(117, 190, 191, .20); /* ghost / outline tint */
-    --accent-muted: rgba(117, 190, 191, .08); /* very subtle fill */
+    --accent-primary: #75bebf; /* main brand teal */
+    --accent-secondary: rgba(117, 190, 191, 0.2); /* ghost / outline tint */
+    --accent-muted: rgba(117, 190, 191, 0.08); /* very subtle fill */
 
     /* Borders */
     --border-default: rgba(0, 0, 0, 0.08);
-    --border-accent: rgba(117, 190, 191, 0.40);
+    --border-accent: rgba(117, 190, 191, 0.4);
 
     /* Shadows */
     --shadow-card: 0 24px 64px rgba(0, 0, 0, 0.45);
@@ -48,7 +48,7 @@
     --text-muted: #555555;
     --accent-primary: #2c7a7b; /* darker teal for light theme */
     --border-default: rgba(0, 0, 0, 0.08);
-    --border-accent: rgba(44, 122, 123, 0.40);
+    --border-accent: rgba(44, 122, 123, 0.4);
 }
 
 @theme inline {
@@ -90,14 +90,21 @@ body {
 }
 
 /* Headings and descriptive text use Nexa */
-h1, h2, h3, h4, h5, h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .font-display {
     font-family: var(--font-display);
 }
 
 /* Ensure inputs, user-data fields, and anything that may contain
    special characters always render with Inter */
-input, textarea, select,
+input,
+textarea,
+select,
 [data-user-content],
 .font-safe {
     font-family: var(--font-sans);

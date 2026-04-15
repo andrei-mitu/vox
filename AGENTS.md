@@ -1,3 +1,29 @@
+## Primary reference: docs/ (Obsidian vault)
+
+The `docs/` directory is the single source of truth for feature plans, architecture,
+TMS module designs, and the database schema narrative.
+
+**Before implementing any feature**, read the relevant note:
+
+| Topic                       | File                                          |
+|-----------------------------|-----------------------------------------------|
+| Architecture & layers       | `docs/01-Architecture.md`                     |
+| Roadmap & priorities        | `docs/02-Roadmap.md`                          |
+| Database schema             | `docs/04-Database-Schema.md`                  |
+| Auth flow                   | `docs/05-Auth-Flow.md`                        |
+| TMS overview                | `docs/10-TMS-Overview.md`                     |
+| Module 1 — Trip creation    | `docs/11-Module1-Trip-Creation.md`            |
+| Module 2 — Carrier assign   | `docs/12-Module2-Carrier-Assignment.md`       |
+| Module 3 — Monitoring       | `docs/13-Module3-Monitoring.md`               |
+| Module 4 — Diff. features   | `docs/14-Module4-Differentiating-Features.md` |
+| Additional features backlog | `docs/15-Additional-Features.md`              |
+
+Do not rely on training knowledge of TMS conventions — the docs define what *this*
+project treats as canonical. If a docs/ note contradicts a general industry convention,
+follow the note.
+
+---
+
 # Agent instructions — Vox (senior TypeScript fullstack)
 
 You are contributing to a **production-minded** fullstack app. Write code as a **senior TypeScript fullstack engineer**:

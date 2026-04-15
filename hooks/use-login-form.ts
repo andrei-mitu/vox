@@ -1,21 +1,28 @@
-'use client';
+"use client";
 
-import {useRouter} from 'next/navigation';
-import React, {useCallback, useState} from 'react';
-import {requestLogin} from '@/lib/client/login-client';
-import {type LoginFieldErrors, parseLoginCredentials,} from '@/lib/dto/auth.dto';
+import { useRouter }    from "next/navigation";
+import type React       from "react";
+import {
+    useCallback,
+    useState
+}                       from "react";
+import { requestLogin } from "@/lib/client/login-client";
+import {
+    type LoginFieldErrors,
+    parseLoginCredentials,
+}                       from "@/lib/dto/auth.dto";
 
 export function useLoginForm() {
     const router = useRouter();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
-    const [serverError, setServerError] = useState('');
+    const [serverError, setServerError] = useState("");
 
     const submit = useCallback(async () => {
-        setServerError('');
-        const parsed = parseLoginCredentials({email, password});
-        if (!parsed.ok) {
+        setServerError("");
+        const parsed = parseLoginCredentials({ email, password });
+        if ( !parsed.ok ) {
             setFieldErrors(parsed.error);
             return;
         }
@@ -24,12 +31,12 @@ export function useLoginForm() {
         setPassword(parsed.data.password);
 
         const result = await requestLogin(parsed.data);
-        if (!result.ok) {
+        if ( !result.ok ) {
             setServerError(result.error);
             return;
         }
 
-        router.push('/');
+        router.push("/");
     }, [email, password, router]);
 
     const handleSubmit = useCallback(
@@ -37,7 +44,7 @@ export function useLoginForm() {
             e.preventDefault();
             await submit();
         },
-        [submit]
+        [submit],
     );
 
     return {

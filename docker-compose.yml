@@ -1,0 +1,61 @@
+name: vox
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: vox
+      POSTGRES_USER: vox
+      POSTGRES_PASSWORD: vox_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U vox -d vox" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "5432:5432"   # expose so Drizzle Studio can connect from the host
+
+  # ── Migrator (init container — runs once, then exits) ────────────────────────
+  # Applies all pending migrations and seeds dev data.
+  # The app service starts only after this completes successfully.
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "bun run db:migrate && bun run db:seed"
+    environment:
+      DATABASE_URL: postgresql://vox:vox_dev_password@postgres:5432/vox
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ── App ──────────────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://vox:vox_dev_password@postgres:5432/vox
+      # Dev-only JWT secret. Replace with a real secret in production.
+      # Generate: openssl rand -base64 32
+      JWT_SECRET: docker-dev-jwt-secret-replace-in-production
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

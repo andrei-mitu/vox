@@ -14,7 +14,38 @@
       "Bash(rm components/ThemeToggle.tsx components/ThemeProvider.tsx)",
       "Bash(sed -i \"s|@/components/ThemeToggle|@/components/theme/theme-toggle|g\" \"app/\\(auth\\)/layout.tsx\" components/sidebar/sidebar.tsx)",
       "Bash(sed -i \"s|@/components/ThemeProvider|@/components/theme/theme-provider|g\" app/layout.tsx)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "WebSearch",
+      "Bash(xargs grep:*)",
+      "Bash(bunx eslint:*)",
+      "Bash(ls .claude/)",
+      "Bash(cat .claude/settings.local.json)",
+      "Bash(bunx biome:*)",
+      "Bash(bun run typecheck)",
+      "Bash(bunx jq:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; [[ \"$f\" == *.ts || \"$f\" == *.tsx ]] && bunx biome format --write \"$f\" && bunx biome lint --write \"$f\" || true'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd \"$CLAUDE_PROJECT_DIR\" && bun run typecheck 2>&1 | tail -5'"
+          }
+        ]
+      }
     ]
   }
 }

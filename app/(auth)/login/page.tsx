@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import {Button} from '@/components/ui/Button';
-import {Card} from '@/components/ui/Card';
-import {Heading} from '@/components/ui/Heading';
-import {Input} from '@/components/ui/Input';
-import {VoxLogo} from '@/components/ui/vox-logo';
-import {useLoginForm} from '@/hooks/use-login-form';
-import {Text} from '@radix-ui/themes';
+import { Text }         from "@radix-ui/themes";
+import Link             from "next/link";
+import { Button }       from "@/components/ui/Button";
+import { Card }         from "@/components/ui/Card";
+import { Heading }      from "@/components/ui/Heading";
+import { Input }        from "@/components/ui/Input";
+import { VoxLogo }      from "@/components/ui/vox-logo";
+import { useLoginForm } from "@/hooks/use-login-form";
 
 export default function LoginPage() {
     const {
@@ -21,10 +22,10 @@ export default function LoginPage() {
 
     return (
         <div className="flex flex-col items-center gap-8 w-full max-w-md">
-            <VoxLogo width={180} height={90}/>
+            <VoxLogo width={ 180 } height={ 90 }/>
             <Card size="4" className="w-full shadow-(--shadow-card)">
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={ handleSubmit }
                     className="flex flex-col gap-5"
                     autoComplete="on"
                     noValidate
@@ -33,15 +34,15 @@ export default function LoginPage() {
                         Sign in to Vox
                     </Heading>
 
-                    {serverError && (
+                    { serverError && (
                         <Text color="red" size="2" align="center" role="alert">
-                            {serverError}
+                            { serverError }
                         </Text>
-                    )}
+                    ) }
 
                     <Input
                         label="Email"
-                        error={fieldErrors.email}
+                        error={ fieldErrors.email }
                         id="email"
                         name="email"
                         type="email"
@@ -49,22 +50,22 @@ export default function LoginPage() {
                         autoComplete="username"
                         autoCapitalize="none"
                         autoCorrect="off"
-                        spellCheck={false}
+                        spellCheck={ false }
                         size="3"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={ email }
+                        onChange={ (e) => setEmail(e.target.value) }
                     />
 
                     <Input
                         label="Password"
-                        error={fieldErrors.password}
+                        error={ fieldErrors.password }
                         id="password"
                         name="password"
                         type="password"
                         autoComplete="current-password"
                         size="3"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={ password }
+                        onChange={ (e) => setPassword(e.target.value) }
                     />
 
                     <Button type="submit" size="3" className="mt-2 text-white">
@@ -72,6 +73,12 @@ export default function LoginPage() {
                     </Button>
                 </form>
             </Card>
+            <Text size="2" color="gray">
+                No account?{ " " }
+                <Link href="/request-access" className="underline underline-offset-2">
+                    Request access
+                </Link>
+            </Text>
         </div>
     );
 }

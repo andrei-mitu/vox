@@ -1,6 +1,9 @@
-import { findMembership, findTeamBySlug } from '@/lib/repositories/team.repository';
-import type { SessionUserDto } from '@/lib/dto/auth.dto';
-import type { Team } from '@/lib/db/schema';
+import type { Team }           from "@/lib/db/schema";
+import type { SessionUserDto } from "@/lib/dto/auth.dto";
+import {
+    findMembership,
+    findTeamBySlug,
+}                              from "@/lib/repositories/team.repository";
 
 export type WorkspaceAccessResult =
     | { ok: true; team: Team }
@@ -22,12 +25,18 @@ export async function assertWorkspaceAccess(
     user: SessionUserDto,
 ): Promise<WorkspaceAccessResult> {
     const team = await findTeamBySlug(slug);
-    if (!team) return { ok: false, status: 404 };
+    if ( !team ) {
+        return { ok: false, status: 404 };
+    }
 
-    if (user.role === 'admin') return { ok: true, team };
+    if ( user.role === "admin" ) {
+        return { ok: true, team };
+    }
 
     const membership = await findMembership(team.id, user.id);
-    if (!membership) return { ok: false, status: 403 };
+    if ( !membership ) {
+        return { ok: false, status: 403 };
+    }
 
     return { ok: true, team };
 }

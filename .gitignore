@@ -99,3 +99,5 @@ ecc2/target/
 assets/images/security/badrudi-exploit.mp4
 
 /bun.lock
+/docs/.obsidian/
+/docs/Untitled.canvas

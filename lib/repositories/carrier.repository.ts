@@ -1,7 +1,13 @@
-import {and, eq} from 'drizzle-orm';
-import {db} from '@/lib/db';
-import type {Carrier, NewCarrier} from '@/lib/db/schema';
-import {carriers} from '@/lib/db/schema';
+import {
+    and,
+    eq
+}                   from "drizzle-orm";
+import { db }       from "@/lib/db";
+import type {
+    Carrier,
+    NewCarrier
+}                   from "@/lib/db/schema";
+import { carriers } from "@/lib/db/schema";
 
 export async function findCarriersByTeamId(teamId: string): Promise<Carrier[]> {
     return db()
@@ -19,20 +25,23 @@ export async function createCarrier(data: NewCarrier): Promise<Carrier> {
 export async function updateCarrier(
     id: string,
     teamId: string,
-    data: Partial<Omit<NewCarrier, 'id' | 'teamId' | 'createdAt'>>,
+    data: Partial<Omit<NewCarrier, "id" | "teamId" | "createdAt">>,
 ): Promise<Carrier | null> {
     const rows = await db()
         .update(carriers)
-        .set({...data, updatedAt: new Date()})
+        .set({ ...data, updatedAt: new Date() })
         .where(and(eq(carriers.id, id), eq(carriers.teamId, teamId)))
         .returning();
     return rows[0] ?? null;
 }
 
-export async function deleteCarrier(id: string, teamId: string): Promise<boolean> {
+export async function deleteCarrier(
+    id: string,
+    teamId: string,
+): Promise<boolean> {
     const rows = await db()
         .delete(carriers)
         .where(and(eq(carriers.id, id), eq(carriers.teamId, teamId)))
-        .returning({id: carriers.id});
+        .returning({ id: carriers.id });
     return rows.length > 0;
 }
