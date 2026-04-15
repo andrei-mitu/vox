@@ -1,13 +1,16 @@
-import { redirect } from 'next/navigation';
-import { getSessionUser } from '@/lib/services/auth.service';
-import { findTeamBySlug, findMembership } from '@/lib/repositories/team.repository';
-import { Sidebar } from '@/components/sidebar/sidebar';
+import { redirect }       from "next/navigation";
+import { Sidebar }        from "@/components/sidebar/sidebar";
+import {
+    findMembership,
+    findTeamBySlug,
+}                         from "@/lib/repositories/team.repository";
+import { getSessionUser } from "@/lib/services/auth.service";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function WorkspaceLayout({
-    children,
-    params,
+                                                  children,
+                                                  params,
 }: {
     children: React.ReactNode;
     params: Promise<{ workspace: string }>;
@@ -15,24 +18,30 @@ export default async function WorkspaceLayout({
     const { workspace: slug } = await params;
 
     const user = await getSessionUser();
-    if (!user) redirect('/login');
+    if ( !user ) {
+        redirect("/login");
+    }
 
     const team = await findTeamBySlug(slug);
-    if (!team) redirect('/no-access');
+    if ( !team ) {
+        redirect("/no-access");
+    }
 
-    if (user.role !== 'admin') {
+    if ( user.role !== "admin" ) {
         const membership = await findMembership(team.id, user.id);
-        if (!membership) redirect('/no-access');
+        if ( !membership ) {
+            redirect("/no-access");
+        }
     }
 
     return (
         <div className="flex h-screen overflow-hidden">
             <Sidebar
-                user={{ email: user.email, id: user.id }}
-                workspace={{ slug: team.slug, name: team.name }}
+                user={ { email: user.email, id: user.id } }
+                workspace={ { slug: team.slug, name: team.name } }
             />
             <main className="flex-1 overflow-auto bg-background-primary">
-                {children}
+                { children }
             </main>
         </div>
     );

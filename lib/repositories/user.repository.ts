@@ -1,13 +1,23 @@
-import {eq} from 'drizzle-orm';
-import {db} from '@/lib/db';
-import type {NewUser, Profile, User} from '@/lib/db/schema';
-import {profiles, users} from '@/lib/db/schema';
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import type {
+    NewProfile,
+    NewUser,
+    Profile,
+    User
+}             from "@/lib/db/schema";
+import {
+    profiles,
+    users
+}             from "@/lib/db/schema";
 
 export interface UserWithProfile extends User {
-    systemRole: Profile['systemRole'];
+    systemRole: Profile["systemRole"];
 }
 
-export async function findUserByEmail(email: string): Promise<UserWithProfile | null> {
+export async function findUserByEmail(
+    email: string,
+): Promise<UserWithProfile | null> {
     const rows = await db()
         .select({
             id: users.id,
@@ -25,7 +35,9 @@ export async function findUserByEmail(email: string): Promise<UserWithProfile | 
         .limit(1);
 
     const row = rows[0];
-    if (!row || !row.systemRole) return null;
+    if ( !row?.systemRole ) {
+        return null;
+    }
     return row as UserWithProfile;
 }
 
@@ -34,7 +46,9 @@ export async function findUserById(id: string): Promise<User | null> {
     return rows[0] ?? null;
 }
 
-export async function findSystemRoleById(id: string): Promise<Profile['systemRole'] | null> {
+export async function findSystemRoleById(
+    id: string,
+): Promise<Profile["systemRole"] | null> {
     const rows = await db()
         .select({ systemRole: profiles.systemRole })
         .from(profiles)
@@ -45,5 +59,10 @@ export async function findSystemRoleById(id: string): Promise<Profile['systemRol
 
 export async function createUser(data: NewUser): Promise<User> {
     const rows = await db().insert(users).values(data).returning();
+    return rows[0]!;
+}
+
+export async function createProfile(data: NewProfile): Promise<Profile> {
+    const rows = await db().insert(profiles).values(data).returning();
     return rows[0]!;
 }

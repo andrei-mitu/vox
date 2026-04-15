@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vox — Transport Management System
 
-## Getting Started
+Open-source multi-tenant TMS for freight logistics teams. Built with Next.js 16, Bun, Drizzle ORM, and PostgreSQL.
 
-First, run the development server:
+---
+
+## Quick start — Docker (recommended)
+
+**Prerequisites:** Docker Desktop 4.x+
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-org/vox.git
+cd vox
+docker compose up
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+First boot: the migrator service applies all migrations and seeds a dev admin account.  
+App available at **http://localhost:3000**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Dev credentials (seeded automatically):**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email           | Password   | Role                         |
+|-----------------|------------|------------------------------|
+| admin@admin.com | Admin.123  | admin                        |
+| alice@demo.com  | Password.1 | owner (apex-logistics)       |
+| bob@demo.com    | Password.1 | logistician (apex-logistics) |
 
-## Learn More
+To reset the database: `docker compose down -v && docker compose up`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Quick start — local Bun
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Prerequisites:** Bun 1.2.23+, PostgreSQL 16+
 
-## Deploy on Vercel
+```bash
+cp .env.example .env    # edit DATABASE_URL to point at your local PG
+bun install
+bun run db:migrate
+bun run db:seed
+bun run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+App available at **http://localhost:3000**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Environment variables
+
+| Variable              | Required | Description                                 |
+|-----------------------|----------|---------------------------------------------|
+| `DATABASE_URL`        | yes      | PostgreSQL connection string                |
+| `JWT_SECRET`          | yes      | HS256 signing key — minimum 32 characters   |
+| `SEED_ADMIN_EMAIL`    | no       | Admin email used by `db:seed` (dev only)    |
+| `SEED_ADMIN_PASSWORD` | no       | Admin password used by `db:seed` (dev only) |
+
+Generate a secure JWT secret:
+
+```bash
+openssl rand -base64 32
+```
+
+Never commit real secrets. The `docker-compose.yml` uses hardcoded dev values intentionally — do not use them in
+production.
+
+---
+
+## Scripts
+
+| Command               | Description                                |
+|-----------------------|--------------------------------------------|
+| `bun run dev`         | Start dev server (Next.js with HMR)        |
+| `bun run build`       | Production build                           |
+| `bun run start`       | Start production server                    |
+| `bun run lint`        | ESLint                                     |
+| `bun run typecheck`   | TypeScript (`tsc --noEmit`)                |
+| `bun run db:generate` | Generate SQL migration from schema changes |
+| `bun run db:migrate`  | Apply pending migrations                   |
+| `bun run db:seed`     | Run SQL seed files                         |
+| `bun run db:studio`   | Open Drizzle Studio (visual DB browser)    |
+
+---
+
+## Architecture
+
+Layered architecture: Route Handler → Service → Repository → Drizzle ORM → PostgreSQL.  
+No business logic in route handlers, no raw SQL in services.
+
+See [`docs/01-Architecture.md`](docs/01-Architecture.md) for the full layer diagram and file structure.
+
+---
+
+## Database migrations
+
+Schema lives in `lib/db/schema/`. After editing a schema file:
+
+```bash
+bun run db:generate   # creates a new file in db/migrations/
+bun run db:migrate    # applies pending migrations to the database
+```
+
+Never edit files in `db/migrations/` by hand.
+
+On Fly.io: `release_command = "bun run db:migrate"` in `fly.toml` runs migrations automatically before traffic switches
+to the new release.
+
+---
+
+## Production deploy (Fly.io)
+
+```bash
+# Set secrets (run once per environment)
+flyctl secrets set DATABASE_URL="postgresql://..." JWT_SECRET="..."
+
+# Deploy
+flyctl deploy
+```
+
+---
+
+## Access gating (hosted instance)
+
+Vox is invite-only by default on the hosted instance.
+
+- **Public users** visit `/request-access`, fill in their details, and submit a request.
+- **Admin** reviews pending requests at `/{workspace}/admin/access-requests` and approves or rejects.
+- On approval, a user account is created and the admin receives a one-time temporary password to share.
+- Until approved, users cannot log in.
+
+**Self-hosted:** run `bun run db:seed` to create a pre-confirmed admin account — no approval flow needed for your own
+instance.
+
+---
+
+## Docs
+
+The `docs/` directory is an [Obsidian](https://obsidian.md) vault with detailed notes on architecture, the TMS feature
+plan, database schema, and auth flow. Open the `docs/` folder as a vault in Obsidian for a linked, navigable view.

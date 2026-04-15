@@ -1,4 +1,7 @@
-import {type ClassNameValue, twMerge} from 'tailwind-merge';
+import {
+    type ClassNameValue,
+    twMerge
+} from "tailwind-merge";
 
 /**
  * Utility to merge Tailwind CSS classes safely using tailwind-merge.

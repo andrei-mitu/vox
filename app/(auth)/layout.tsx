@@ -1,4 +1,4 @@
-import {ThemeToggleButton} from '@/components/theme/theme-toggle';
+import { ThemeToggleButton } from "@/components/theme/theme-toggle";
 
 export default function LoginLayout({
                                         children,
@@ -10,7 +10,7 @@ export default function LoginLayout({
             <div className="absolute top-4 right-4">
                 <ThemeToggleButton/>
             </div>
-            {children}
+            { children }
         </div>
     );
 }
