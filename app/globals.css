@@ -79,7 +79,6 @@
 body {
     background: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-sans);
 }
 
 .radix-themes {
@@ -97,7 +96,7 @@ h4,
 h5,
 h6,
 .font-display {
-    font-family: var(--font-display);
+    font-family: var(--font-display), serif;
 }
 
 /* Ensure inputs, user-data fields, and anything that may contain

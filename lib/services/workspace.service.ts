@@ -18,6 +18,10 @@ export async function resolvePostLoginRedirect(
     userId: string,
     role: "admin" | "user",
 ): Promise<string> {
+    if ( role === "admin" ) {
+        return "/admin";
+    }
+
     const teams = await getVisibleTeams(userId, role);
 
     if ( teams.length === 0 ) {
