@@ -1,29 +1,11 @@
 import { z } from "zod";
-import type {
-    CarrierMode,
-    CarrierStatus
-}            from "@/lib/db/schema";
-
-export type { CarrierMode, CarrierStatus };
-
-export const CARRIER_MODE_LABELS: Record<CarrierMode, string> = {
-    air: "Air",
-    ocean: "Ocean",
-    road: "Road",
-    rail: "Rail",
-};
 
 // ---------------------------------------------------------------------------
-// Create carrier
+// Create client
 // ---------------------------------------------------------------------------
 
-export const createCarrierSchema = z.object({
+export const createClientSchema = z.object({
     name: z.string().trim().min(1, "Name is required").max(200),
-    code: z.string().trim().min(1, "Code is required").max(50),
-    mode: z.enum(["air", "ocean", "road", "rail"], {
-        message: "Select a transport mode",
-    }),
-    status: z.enum(["active", "inactive"]).default("active"),
     contactName: z.string().trim().max(200).nullable().optional(),
     contactEmail: z
         .string()
@@ -33,32 +15,31 @@ export const createCarrierSchema = z.object({
         .nullable()
         .optional(),
     contactPhone: z.string().trim().max(50).nullable().optional(),
+    billingAddress: z.string().trim().max(500).nullable().optional(),
     notes: z.string().trim().max(2000).nullable().optional(),
 });
 
-export type CreateCarrierInput = z.infer<typeof createCarrierSchema>;
+export type CreateClientInput = z.infer<typeof createClientSchema>;
 
 // ---------------------------------------------------------------------------
-// Update carrier (all fields optional)
+// Update client (all fields optional)
 // ---------------------------------------------------------------------------
 
-export const updateCarrierSchema = createCarrierSchema.partial();
-export type UpdateCarrierInput = z.infer<typeof updateCarrierSchema>;
+export const updateClientSchema = createClientSchema.partial();
+export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 
 // ---------------------------------------------------------------------------
-// Carrier response DTO
+// Client response DTO
 // ---------------------------------------------------------------------------
 
-export interface CarrierDto {
+export interface ClientDto {
     id: string;
     teamId: string;
     name: string;
-    code: string;
-    mode: CarrierMode;
-    status: CarrierStatus;
     contactName: string | null;
     contactEmail: string | null;
     contactPhone: string | null;
+    billingAddress: string | null;
     notes: string | null;
     createdAt: string;
     updatedAt: string;
@@ -68,10 +49,10 @@ export interface CarrierDto {
 // Parse helpers for Route Handlers
 // ---------------------------------------------------------------------------
 
-export function parseCreateCarrierBody(
+export function parseCreateClientBody(
     input: unknown,
-): { ok: true; data: CreateCarrierInput } | { ok: false; message: string } {
-    const result = createCarrierSchema.safeParse(input);
+): { ok: true; data: CreateClientInput } | { ok: false; message: string } {
+    const result = createClientSchema.safeParse(input);
     if ( !result.success ) {
         const message = result.error.issues[0]?.message ?? "Invalid input";
         return { ok: false, message };
@@ -79,10 +60,10 @@ export function parseCreateCarrierBody(
     return { ok: true, data: result.data };
 }
 
-export function parseUpdateCarrierBody(
+export function parseUpdateClientBody(
     input: unknown,
-): { ok: true; data: UpdateCarrierInput } | { ok: false; message: string } {
-    const result = updateCarrierSchema.safeParse(input);
+): { ok: true; data: UpdateClientInput } | { ok: false; message: string } {
+    const result = updateClientSchema.safeParse(input);
     if ( !result.success ) {
         const message = result.error.issues[0]?.message ?? "Invalid input";
         return { ok: false, message };

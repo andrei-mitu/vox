@@ -60,18 +60,18 @@
 
 ### Carriers UI
 
-- [ ] Carriers list page — table with name, code, mode, status, contact
-- [ ] Create carrier form / modal
-- [ ] Edit carrier inline or modal
-- [ ] Delete carrier with confirmation
-- [ ] Filter by mode / status
+- [x] Carriers list page — table with name, code, mode, status, contact
+- [x] Create carrier form / modal
+- [x] Edit carrier inline or modal
+- [x] Delete carrier with confirmation
+- [x] Filter by mode / status
 
 ### Clients
 
-- [ ] `clients` table schema (name, contact info, team_id)
-- [ ] Client repository + service + DTOs
-- [ ] Clients API: CRUD
-- [ ] Clients list page + detail page
+- [x] `clients` table schema (name, contact info, team_id)
+- [x] Client repository + service + DTOs
+- [x] Clients API: CRUD
+- [x] Clients list page
 
 ### TMS — Module 1: Trip Creation  ([[11-Module1-Trip-Creation]])
 

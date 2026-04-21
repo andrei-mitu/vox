@@ -1,25 +1,25 @@
-import { z }                      from "zod";
-import { readJsonBody }           from "@/lib/api/request";
-import { ApiResponse }            from "@/lib/api/response";
-import { assertWorkspaceAccess }  from "@/lib/auth/workspace";
-import { parseUpdateCarrierBody } from "@/lib/dto/carrier.dto";
-import { getSessionUser }         from "@/lib/services/auth.service";
+import { z }                    from "zod";
+import { readJsonBody }         from "@/lib/api/request";
+import { ApiResponse }          from "@/lib/api/response";
+import { assertWorkspaceAccess } from "@/lib/auth/workspace";
+import { parseUpdateClientBody } from "@/lib/dto/client.dto";
+import { getSessionUser }       from "@/lib/services/auth.service";
 import {
-    removeCarrier,
-    updateExistingCarrier,
-}                                 from "@/lib/services/carrier.service";
+    removeClient,
+    updateExistingClient,
+}                               from "@/lib/services/client.service";
 
 const uuidSchema = z.string().uuid();
 
 export async function PATCH(
     request: Request,
-    { params }: { params: Promise<{ workspace: string; carrierId: string }> },
+    { params }: { params: Promise<{ workspace: string; clientId: string }> },
 ): Promise<Response> {
     try {
-        const { workspace: slug, carrierId } = await params;
+        const { workspace: slug, clientId } = await params;
 
-        if ( !uuidSchema.safeParse(carrierId).success ) {
-            return ApiResponse.notFound("Carrier not found.");
+        if ( !uuidSchema.safeParse(clientId).success ) {
+            return ApiResponse.notFound("Client not found.");
         }
 
         const user = await getSessionUser();
@@ -37,21 +37,17 @@ export async function PATCH(
             return ApiResponse.badRequest("Invalid JSON body");
         }
 
-        const parsed = parseUpdateCarrierBody(body);
+        const parsed = parseUpdateClientBody(body);
         if ( !parsed.ok ) {
             return ApiResponse.badRequest(parsed.message);
         }
 
-        const result = await updateExistingCarrier(
-            carrierId,
-            access.team.id,
-            parsed.data,
-        );
+        const result = await updateExistingClient(clientId, access.team.id, parsed.data);
         if ( !result.ok ) {
             return ApiResponse.error(result.message, result.status);
         }
 
-        return ApiResponse.ok(result.carrier);
+        return ApiResponse.ok(result.client);
     } catch ( error ) {
         return ApiResponse.internalServerError(error);
     }
@@ -59,13 +55,13 @@ export async function PATCH(
 
 export async function DELETE(
     _request: Request,
-    { params }: { params: Promise<{ workspace: string; carrierId: string }> },
+    { params }: { params: Promise<{ workspace: string; clientId: string }> },
 ): Promise<Response> {
     try {
-        const { workspace: slug, carrierId } = await params;
+        const { workspace: slug, clientId } = await params;
 
-        if ( !uuidSchema.safeParse(carrierId).success ) {
-            return ApiResponse.notFound("Carrier not found.");
+        if ( !uuidSchema.safeParse(clientId).success ) {
+            return ApiResponse.notFound("Client not found.");
         }
 
         const user = await getSessionUser();
@@ -78,7 +74,7 @@ export async function DELETE(
             return ApiResponse.error("Not found", access.status);
         }
 
-        const result = await removeCarrier(carrierId, access.team.id);
+        const result = await removeClient(clientId, access.team.id);
         if ( !result.ok ) {
             return ApiResponse.error(result.message, result.status);
         }

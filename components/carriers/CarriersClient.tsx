@@ -1,11 +1,11 @@
 'use client';
 
 import {useState} from 'react';
-import {AlertDialog, Badge, Button, Flex, Heading, IconButton, Table, Text} from '@radix-ui/themes';
+import {AlertDialog, Badge, Button, Flex, Heading, IconButton, Select, Table, Text} from '@radix-ui/themes';
 import {Pencil, Trash2} from 'lucide-react';
 import {CarrierDialog} from './CarrierDialog';
 import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
-import type {CarrierDto} from '@/lib/dto/carrier.dto';
+import type {CarrierDto, CarrierMode, CarrierStatus} from '@/lib/dto/carrier.dto';
 
 interface CarriersClientProps {
     initialCarriers: CarrierDto[];
@@ -17,11 +17,19 @@ export function CarriersClient({
     workspaceSlug,
 }: CarriersClientProps): React.ReactElement {
     const [carriers, setCarriers] = useState<CarrierDto[]>(initialCarriers);
+    const [filterMode, setFilterMode] = useState<CarrierMode | 'all'>('all');
+    const [filterStatus, setFilterStatus] = useState<CarrierStatus | 'all'>('all');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<CarrierDto | undefined>(undefined);
     const [deleteTarget, setDeleteTarget] = useState<CarrierDto | undefined>(undefined);
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+
+    const filtered = carriers.filter((c) => {
+        if (filterMode !== 'all' && c.mode !== filterMode) return false;
+        if (filterStatus !== 'all' && c.status !== filterStatus) return false;
+        return true;
+    });
 
     function openCreate(): void {
         setEditTarget(undefined);
@@ -75,6 +83,35 @@ export function CarriersClient({
                 <Button onClick={openCreate}>New Carrier</Button>
             </Flex>
 
+            {carriers.length > 0 && (
+                <Flex gap="3" mb="4">
+                    <Select.Root
+                        value={filterMode}
+                        onValueChange={(v) => setFilterMode(v as CarrierMode | 'all')}
+                    >
+                        <Select.Trigger placeholder="Mode" />
+                        <Select.Content>
+                            <Select.Item value="all">All modes</Select.Item>
+                            {(Object.entries(CARRIER_MODE_LABELS) as [CarrierMode, string][]).map(([value, label]) => (
+                                <Select.Item key={value} value={value}>{label}</Select.Item>
+                            ))}
+                        </Select.Content>
+                    </Select.Root>
+
+                    <Select.Root
+                        value={filterStatus}
+                        onValueChange={(v) => setFilterStatus(v as CarrierStatus | 'all')}
+                    >
+                        <Select.Trigger placeholder="Status" />
+                        <Select.Content>
+                            <Select.Item value="all">All statuses</Select.Item>
+                            <Select.Item value="active">Active</Select.Item>
+                            <Select.Item value="inactive">Inactive</Select.Item>
+                        </Select.Content>
+                    </Select.Root>
+                </Flex>
+            )}
+
             {carriers.length === 0 ? (
                 <Flex direction="column" align="center" gap="2" py="9">
                     <Text size="3" color="gray">No carriers yet.</Text>
@@ -93,7 +130,13 @@ export function CarriersClient({
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {carriers.map((carrier) => (
+                        {filtered.length === 0 ? (
+                            <Table.Row>
+                                <Table.Cell colSpan={6}>
+                                    <Text size="2" color="gray">No carriers match the selected filters.</Text>
+                                </Table.Cell>
+                            </Table.Row>
+                        ) : filtered.map((carrier) => (
                             <Table.Row key={carrier.id} align="center">
                                 <Table.Cell>
                                     <Text weight="medium">{carrier.name}</Text>
