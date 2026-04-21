@@ -60,11 +60,11 @@
 
 ### Carriers UI
 
-- [ ] Carriers list page — table with name, code, mode, status, contact
-- [ ] Create carrier form / modal
-- [ ] Edit carrier inline or modal
-- [ ] Delete carrier with confirmation
-- [ ] Filter by mode / status
+- [x] Carriers list page — table with name, code, mode, status, contact
+- [x] Create carrier form / modal
+- [x] Edit carrier inline or modal
+- [x] Delete carrier with confirmation
+- [x] Filter by mode / status
 
 ### Clients
 
