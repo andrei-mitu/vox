@@ -68,10 +68,10 @@
 
 ### Clients
 
-- [ ] `clients` table schema (name, contact info, team_id)
-- [ ] Client repository + service + DTOs
-- [ ] Clients API: CRUD
-- [ ] Clients list page + detail page
+- [x] `clients` table schema (name, contact info, team_id)
+- [x] Client repository + service + DTOs
+- [x] Clients API: CRUD
+- [x] Clients list page
 
 ### TMS — Module 1: Trip Creation  ([[11-Module1-Trip-Creation]])
 
