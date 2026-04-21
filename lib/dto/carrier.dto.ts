@@ -4,6 +4,8 @@ import type {
     CarrierStatus
 }            from "@/lib/db/schema";
 
+export type { CarrierMode, CarrierStatus };
+
 export const CARRIER_MODE_LABELS: Record<CarrierMode, string> = {
     air: "Air",
     ocean: "Ocean",

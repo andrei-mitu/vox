@@ -5,8 +5,7 @@ import {AlertDialog, Badge, Button, Flex, Heading, IconButton, Select, Table, Te
 import {Pencil, Trash2} from 'lucide-react';
 import {CarrierDialog} from './CarrierDialog';
 import {CARRIER_MODE_LABELS} from '@/lib/dto/carrier.dto';
-import type {CarrierDto} from '@/lib/dto/carrier.dto';
-import type {CarrierMode, CarrierStatus} from '@/lib/db/schema';
+import type {CarrierDto, CarrierMode, CarrierStatus} from '@/lib/dto/carrier.dto';
 
 interface CarriersClientProps {
     initialCarriers: CarrierDto[];

@@ -1,3 +1,4 @@
+import { z }                      from "zod";
 import { readJsonBody }           from "@/lib/api/request";
 import { ApiResponse }            from "@/lib/api/response";
 import { assertWorkspaceAccess }  from "@/lib/auth/workspace";
@@ -8,12 +9,18 @@ import {
     updateExistingCarrier,
 }                                 from "@/lib/services/carrier.service";
 
+const uuidSchema = z.string().uuid();
+
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ workspace: string; carrierId: string }> },
 ): Promise<Response> {
     try {
         const { workspace: slug, carrierId } = await params;
+
+        if ( !uuidSchema.safeParse(carrierId).success ) {
+            return ApiResponse.notFound("Carrier not found.");
+        }
 
         const user = await getSessionUser();
         if ( !user ) {
@@ -56,6 +63,10 @@ export async function DELETE(
 ): Promise<Response> {
     try {
         const { workspace: slug, carrierId } = await params;
+
+        if ( !uuidSchema.safeParse(carrierId).success ) {
+            return ApiResponse.notFound("Carrier not found.");
+        }
 
         const user = await getSessionUser();
         if ( !user ) {
