@@ -1,14 +1,23 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import Link from 'next/link';
-import {ChevronLeft, ChevronRight, LogOut, Plus, ShieldCheck} from 'lucide-react';
-import {Tooltip} from '@radix-ui/themes';
-import {getNavItems} from './nav-config';
-import {SidebarNavItem} from './nav-item';
-import {ThemeToggleButton} from '@/components/theme/theme-toggle';
-import {VoxLogo} from '@/components/ui/vox-logo';
-import {cn} from '@/lib/utils';
+import {
+    useEffect,
+    useState
+}                            from 'react';
+import Link                  from 'next/link';
+import {
+    ChevronLeft,
+    ChevronRight,
+    LogOut,
+    Plus,
+    ShieldCheck
+}                            from 'lucide-react';
+import { Tooltip }           from '@radix-ui/themes';
+import { getNavItems }       from './nav-config';
+import { SidebarNavItem }    from './nav-item';
+import { ThemeToggleButton } from '@/components/theme/theme-toggle';
+import { VoxLogo }           from '@/components/ui/vox-logo';
+import { cn }                from '@/lib/utils';
 
 interface SidebarProps {
     user: {
@@ -23,13 +32,16 @@ interface SidebarProps {
 }
 
 export function Sidebar({ user, workspace, isAdmin = false }: SidebarProps) {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => {
+        if ( typeof window === 'undefined' ) {
+            return false;
+        }
+        return localStorage.getItem('sidebar-collapsed') === 'true';
+    });
+
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Apply the stored state first (invisible, no transition flash), then
-        // reveal the sidebar in the next animation frame once the width is correct.
-        setCollapsed(localStorage.getItem('sidebar-collapsed') === 'true');
         const raf = requestAnimationFrame(() => setMounted(true));
         return () => cancelAnimationFrame(raf);
     }, []);

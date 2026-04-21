@@ -1,8 +1,15 @@
 'use client';
 
-import { Theme }                from '@radix-ui/themes';
+import { Theme }                 from '@radix-ui/themes';
 import { useServerInsertedHTML } from 'next/navigation';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
+}                                from 'react';
 
 // `:root` in globals.css is dark by default; `.light` overrides to light.
 // Radix Themes activates dark mode via the `.dark` class on a parent element.
@@ -17,7 +24,8 @@ interface ThemeContextValue {
 
 const ThemeCtx = createContext<ThemeContextValue>({
     resolvedTheme: undefined,
-    setTheme: () => {},
+    setTheme: () => {
+    },
 });
 
 export function useTheme(): ThemeContextValue {
@@ -34,47 +42,59 @@ function applyTheme(t: ResolvedTheme): void {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme | undefined>(undefined);
+    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme | undefined>(() => {
+        if ( typeof window === 'undefined' ) {
+            return undefined;
+        }
 
-    // useServerInsertedHTML injects HTML during SSR outside the React hydration tree,
-    // so React 19 never encounters the <script> on the client — no warning.
+        const stored = localStorage.getItem('theme') as ResolvedTheme | null;
+
+        return stored ?? (
+            window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        );
+    });
+
     useServerInsertedHTML(() => (
-        // eslint-disable-next-line @next/next/no-before-interactive-script-outside-document
-        <script dangerouslySetInnerHTML={{ __html: FOUC_SCRIPT }} />
+        <script dangerouslySetInnerHTML={ { __html: FOUC_SCRIPT } }/>
     ));
 
     useEffect(() => {
-        const stored = localStorage.getItem('theme') as ResolvedTheme | null;
-        const initial: ResolvedTheme =
-            stored ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        setResolvedTheme(initial);
-        applyTheme(initial);
+        if ( !resolvedTheme ) {
+            return;
+        }
+        applyTheme(resolvedTheme);
+    }, [resolvedTheme]);
 
-        // Follow system preference changes when the user has no explicit preference stored.
+    useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
         function handleMediaChange(e: MediaQueryListEvent): void {
-            if (localStorage.getItem('theme')) return; // explicit preference takes precedence
+            if ( localStorage.getItem('theme') ) {
+                return;
+            }
+
             const next: ResolvedTheme = e.matches ? 'dark' : 'light';
             setResolvedTheme(next);
-            applyTheme(next);
         }
-        mediaQuery.addEventListener('change', handleMediaChange);
 
-        // Sync theme across tabs via the storage event.
         function handleStorage(e: StorageEvent): void {
-            if (e.key !== 'theme') return;
-            if (e.newValue === 'dark' || e.newValue === 'light') {
+            if ( e.key !== 'theme' ) {
+                return;
+            }
+
+            if ( e.newValue === 'dark' || e.newValue === 'light' ) {
                 setResolvedTheme(e.newValue);
-                applyTheme(e.newValue);
-            } else if (!e.newValue) {
-                // Preference cleared in another tab — fall back to system.
-                const sys: ResolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-                    ? 'dark'
-                    : 'light';
+            } else if ( !e.newValue ) {
+                const sys: ResolvedTheme =
+                    window.matchMedia('(prefers-color-scheme: dark)').matches
+                        ? 'dark'
+                        : 'light';
+
                 setResolvedTheme(sys);
-                applyTheme(sys);
             }
         }
+
+        mediaQuery.addEventListener('change', handleMediaChange);
         window.addEventListener('storage', handleStorage);
 
         return () => {
@@ -95,9 +115,9 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     );
 
     return (
-        <ThemeCtx.Provider value={contextValue}>
+        <ThemeCtx.Provider value={ contextValue }>
             <Theme accentColor="teal" grayColor="slate" radius="medium" appearance="inherit">
-                {children}
+                { children }
             </Theme>
         </ThemeCtx.Provider>
     );
