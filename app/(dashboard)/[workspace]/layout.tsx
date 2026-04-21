@@ -39,6 +39,7 @@ export default async function WorkspaceLayout({
             <Sidebar
                 user={ { email: user.email, id: user.id } }
                 workspace={ { slug: team.slug, name: team.name } }
+                isAdmin={ user.role === 'admin' }
             />
             <main className="flex-1 overflow-auto bg-background-primary">
                 { children }

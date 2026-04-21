@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import type {
     NewProfile,
@@ -55,6 +55,64 @@ export async function findSystemRoleById(
         .where(eq(profiles.id, id))
         .limit(1);
     return rows[0]?.systemRole ?? null;
+}
+
+// fullName and systemRole are nullable: users without a profile row
+// are still returned (LEFT JOIN) so admins can see and act on them.
+export interface AdminUserRow {
+    id: string;
+    email: string;
+    fullName: string | null;
+    systemRole: Profile['systemRole'] | null;
+    emailConfirmedAt: Date | null;
+    bannedUntil: Date | null;
+    createdAt: Date;
+}
+
+export async function countAllUsers(): Promise<number> {
+    const rows = await db().select({ value: count() }).from(users);
+    return Number(rows[0]?.value ?? 0);
+}
+
+export async function findAllUsersWithProfiles(
+    page = 1,
+    limit = 50,
+): Promise<AdminUserRow[]> {
+    const offset = (page - 1) * limit;
+    return db()
+        .select({
+            id: users.id,
+            email: users.email,
+            fullName: profiles.fullName,
+            systemRole: profiles.systemRole,
+            emailConfirmedAt: users.emailConfirmedAt,
+            bannedUntil: users.bannedUntil,
+            createdAt: users.createdAt,
+        })
+        .from(users)
+        .leftJoin(profiles, eq(profiles.id, users.id))
+        .orderBy(asc(users.createdAt))
+        .limit(limit)
+        .offset(offset);
+}
+
+export async function banUser(id: string, until: Date): Promise<void> {
+    await db().update(users).set({ bannedUntil: until }).where(eq(users.id, id));
+}
+
+export async function unbanUser(id: string): Promise<void> {
+    await db().update(users).set({ bannedUntil: null }).where(eq(users.id, id));
+}
+
+export async function updateUserRole(
+    id: string,
+    role: Profile['systemRole'],
+): Promise<void> {
+    await db().update(profiles).set({ systemRole: role }).where(eq(profiles.id, id));
+}
+
+export async function deleteUserById(id: string): Promise<void> {
+    await db().delete(users).where(eq(users.id, id));
 }
 
 export async function createUser(data: NewUser): Promise<User> {

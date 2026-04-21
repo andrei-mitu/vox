@@ -1,14 +1,23 @@
 'use client';
 
-import {useState} from 'react';
-import Link from 'next/link';
-import {ChevronLeft, ChevronRight, LogOut, Plus} from 'lucide-react';
-import {Tooltip} from '@radix-ui/themes';
-import {getNavItems} from './nav-config';
-import {SidebarNavItem} from './nav-item';
-import {ThemeToggleButton} from '@/components/theme/theme-toggle';
-import {VoxLogo} from '@/components/ui/vox-logo';
-import {cn} from '@/lib/utils';
+import {
+    useEffect,
+    useState
+}                            from 'react';
+import Link                  from 'next/link';
+import {
+    ChevronLeft,
+    ChevronRight,
+    LogOut,
+    Plus,
+    ShieldCheck
+}                            from 'lucide-react';
+import { Tooltip }           from '@radix-ui/themes';
+import { getNavItems }       from './nav-config';
+import { SidebarNavItem }    from './nav-item';
+import { ThemeToggleButton } from '@/components/theme/theme-toggle';
+import { VoxLogo }           from '@/components/ui/vox-logo';
+import { cn }                from '@/lib/utils';
 
 interface SidebarProps {
     user: {
@@ -19,10 +28,23 @@ interface SidebarProps {
         slug: string;
         name: string;
     };
+    isAdmin?: boolean;
 }
 
-export function Sidebar({ user, workspace }: SidebarProps) {
-    const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
+export function Sidebar({ user, workspace, isAdmin = false }: SidebarProps) {
+    const [collapsed, setCollapsed] = useState(() => {
+        if ( typeof window === 'undefined' ) {
+            return false;
+        }
+        return localStorage.getItem('sidebar-collapsed') === 'true';
+    });
+
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        const raf = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(raf);
+    }, []);
 
     const toggle = () => {
         setCollapsed(prev => {
@@ -43,7 +65,10 @@ export function Sidebar({ user, workspace }: SidebarProps) {
                 'relative flex flex-col shrink-0 h-screen overflow-hidden',
                 'bg-background-secondary border-r border-border-default',
                 'transition-[width] duration-200 ease-out',
-                collapsed ? 'w-16' : 'w-60'
+                collapsed ? 'w-16' : 'w-60',
+                // Keep invisible until the stored collapsed state has been applied,
+                // then reveal in the next rAF. Prevents a flash of the wrong width.
+                !mounted && 'invisible',
             )}
         >
             {/* Header */}
@@ -110,6 +135,31 @@ export function Sidebar({ user, workspace }: SidebarProps) {
                     <SidebarNavItem key={item.href} item={item} collapsed={collapsed} />
                 ))}
             </nav>
+
+            {/* Admin back-link */}
+            {isAdmin && (
+                <div className={cn('shrink-0 px-3 pb-2', collapsed && 'px-2')}>
+                    {collapsed ? (
+                        <Tooltip content="Admin panel" side="right">
+                            <Link
+                                href="/admin"
+                                aria-label="Admin panel"
+                                className="flex items-center justify-center p-2 rounded-md text-text-muted hover:text-accent-primary hover:bg-background-muted transition-colors"
+                            >
+                                <ShieldCheck size={14} />
+                            </Link>
+                        </Tooltip>
+                    ) : (
+                        <Link
+                            href="/admin"
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-text-muted hover:text-accent-primary hover:bg-background-muted transition-colors"
+                        >
+                            <ShieldCheck size={13} className="shrink-0" />
+                            Back to Admin
+                        </Link>
+                    )}
+                </div>
+            )}
 
             {/* Footer */}
             <div

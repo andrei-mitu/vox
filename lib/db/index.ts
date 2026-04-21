@@ -19,10 +19,13 @@ function getDb(): DrizzleDb {
         throw new Error("Missing required env: DATABASE_URL");
     }
 
+    const sslMode = process.env.DATABASE_SSL;
+    const ssl = sslMode === 'require' ? 'require' : sslMode === 'prefer' ? 'prefer' : false;
+
     const pgClient =
         globalForDb.pgClient ??
         postgres(connectionString, {
-            ssl: process.env.NODE_ENV === "production",
+            ssl,
             max: 10,
             idle_timeout: 30,
             connect_timeout: 10,

@@ -22,7 +22,10 @@
       "Bash(cat .claude/settings.local.json)",
       "Bash(bunx biome:*)",
       "Bash(bun run typecheck)",
-      "Bash(bunx jq:*)"
+      "Bash(bunx jq:*)",
+      "Bash(find \"app/\\(dashboard\\)/[workspace]/admin\" -type f)",
+      "Bash(find \"app/api/[workspace]/admin\" -type f)",
+      "WebFetch(domain:github.com)"
     ]
   },
   "hooks": {

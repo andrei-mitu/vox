@@ -33,16 +33,16 @@ clear boundaries, explicit types, secure defaults, and patterns that survive rev
 
 ## Stack
 
-| Layer        | Choice                                                                               |
-|--------------|--------------------------------------------------------------------------------------|
-| Framework    | **Next.js 16** (App Router)                                                          |
-| Runtime / PM | **Bun** (package manager and script runner; `next dev/build/start` for Next.js)      |
-| UI           | **Radix Themes** (`@radix-ui/themes`) — theming, layout primitives, accessible UI    |
-| Styling      | **Tailwind CSS 4** + `tailwind-merge` for conditional class merging                  |
+| Layer        | Choice                                                                                    |
+|--------------|-------------------------------------------------------------------------------------------|
+| Framework    | **Next.js 16** (App Router)                                                               |
+| Runtime / PM | **Bun** (package manager and script runner; `next dev/build/start` for Next.js)           |
+| UI           | **Radix Themes** (`@radix-ui/themes`) — theming, layout primitives, accessible UI         |
+| Styling      | **Tailwind CSS 4** + `tailwind-merge` for conditional class merging                       |
 | Database     | **PostgreSQL** via **Drizzle ORM** + **postgres.js** (direct connection, no Supabase SDK) |
-| Auth         | Custom JWT in `httpOnly` cookie — `jose` for signing, `bcryptjs` for password hashing |
-| Deploy       | **Vercel** — Node.js runtime for all Route Handlers                                  |
-| React        | **React 19**                                                                         |
+| Auth         | Custom JWT in `httpOnly` cookie — `jose` for signing, `bcryptjs` for password hashing     |
+| Deploy       | **Vercel** — Node.js runtime for all Route Handlers                                       |
+| React        | **React 19**                                                                              |
 
 ---
 
@@ -116,13 +116,13 @@ drizzle.config.ts
 
 ### Layer responsibilities
 
-| Layer | What it does | What it must NOT do |
-|-------|-------------|----------------------|
-| Route Handler (`app/api/`) | Parse request, validate with DTO, call one service, return JSON | Contain business logic or SQL |
-| Service (`lib/services/`) | Orchestrate business rules, call repositories | Execute raw SQL, import from `app/` |
-| Repository (`lib/repositories/`) | Execute Drizzle queries, return typed rows | Contain business logic |
-| DTO (`lib/dto/`) | Define Zod schemas and inferred TypeScript types | Import from services or repositories |
-| Schema (`lib/db/schema/`) | Define Drizzle table structure and export inferred types | Import application logic |
+| Layer                            | What it does                                                    | What it must NOT do                  |
+|----------------------------------|-----------------------------------------------------------------|--------------------------------------|
+| Route Handler (`app/api/`)       | Parse request, validate with DTO, call one service, return JSON | Contain business logic or SQL        |
+| Service (`lib/services/`)        | Orchestrate business rules, call repositories                   | Execute raw SQL, import from `app/`  |
+| Repository (`lib/repositories/`) | Execute Drizzle queries, return typed rows                      | Contain business logic               |
+| DTO (`lib/dto/`)                 | Define Zod schemas and inferred TypeScript types                | Import from services or repositories |
+| Schema (`lib/db/schema/`)        | Define Drizzle table structure and export inferred types        | Import application logic             |
 
 ---
 
@@ -130,15 +130,15 @@ drizzle.config.ts
 
 ### Files
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Next.js route files | lowercase (fixed by Next.js) | `page.tsx`, `layout.tsx`, `route.ts` |
-| React components | PascalCase | `Sidebar.tsx`, `Button.tsx` |
-| Non-component TS files | kebab-case | `auth.service.ts`, `use-login-form.ts` |
-| Drizzle schema files | kebab-case, singular | `team-members.ts`, `access-requests.ts` |
-| Repository files | `<entity>.repository.ts` | `user.repository.ts` |
-| Service files | `<entity>.service.ts` | `auth.service.ts` |
-| DTO files | `<entity>.dto.ts` | `auth.dto.ts` |
+| Type                   | Convention                   | Example                                 |
+|------------------------|------------------------------|-----------------------------------------|
+| Next.js route files    | lowercase (fixed by Next.js) | `page.tsx`, `layout.tsx`, `route.ts`    |
+| React components       | PascalCase                   | `Sidebar.tsx`, `Button.tsx`             |
+| Non-component TS files | kebab-case                   | `auth.service.ts`, `use-login-form.ts`  |
+| Drizzle schema files   | kebab-case, singular         | `team-members.ts`, `access-requests.ts` |
+| Repository files       | `<entity>.repository.ts`     | `user.repository.ts`                    |
+| Service files          | `<entity>.service.ts`        | `auth.service.ts`                       |
+| DTO files              | `<entity>.dto.ts`            | `auth.dto.ts`                           |
 
 ### Code
 
@@ -209,7 +209,8 @@ bun run db:studio     # open Drizzle Studio
 - Sessions are JWT tokens stored in an `httpOnly`, `secure`, `sameSite=lax` cookie named `vox_session`.
 - Sign/verify logic lives in `lib/auth/session.ts` — import only from server-side code.
 - `getSessionUser()` in `lib/services/auth.service.ts` is the single source of truth for the current user.
-- Never return different error messages for "user not found" vs "wrong password" — same message prevents email enumeration.
+- Never return different error messages for "user not found" vs "wrong password" — same message prevents email
+  enumeration.
 - Always run `bcrypt.compare` even when the user does not exist (dummy hash) to prevent timing attacks.
 
 ---
@@ -219,7 +220,8 @@ bun run db:studio     # open Drizzle Studio
 - **Prefer Radix Themes primitives**: `Theme`, `Flex`, `Box`, `Text`, `Heading`, `Button`, `TextField`, dialogs, etc.
 - Custom components must wrap or compose Radix primitives — never re-implement ARIA, focus traps, or keyboard handling.
 - Never mix Shadcn/ui — this project uses Radix Themes directly.
-- Respect `next-themes` + Radix `appearance` for dark/light — use Theme tokens (`--accent-9`, `--gray-2`), not hard-coded colors.
+- Respect `next-themes` + Radix `appearance` for dark/light — use Theme tokens (`--accent-9`, `--gray-2`), not
+  hard-coded colors.
 
 ---
 
