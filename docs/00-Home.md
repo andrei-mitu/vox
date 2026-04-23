@@ -6,6 +6,7 @@
 
 - [[01-Architecture]] — stack, layers, file structure
 - [[02-Roadmap]] — what's done, what's next, priorities
+- [[03-UI-Navigation]] — detail page pattern, URL structure, tab content, component architecture
 - [[04-Database-Schema]] — all tables, enums, relations
 - [[05-Auth-Flow]] — JWT auth, session lifecycle, workspace guard
 

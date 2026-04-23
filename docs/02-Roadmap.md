@@ -56,8 +56,6 @@
 
 ---
 
-## In Progress / Next 🚧
-
 ### Carriers UI
 
 - [x] Carriers list page — table with name, code, mode, status, contact
@@ -72,6 +70,45 @@
 - [x] Client repository + service + DTOs
 - [x] Clients API: CRUD
 - [x] Clients list page
+
+### UI — Phase 1: Routes entity  ([[03-UI-Navigation]])
+
+- [x] `routes` table schema + migration
+- [x] Route repository + service + DTOs
+- [x] Routes API: `GET/POST /api/[workspace]/routes`, `GET/PUT/DELETE /api/[workspace]/routes/[routeId]`
+- [x] Routes list page
+- [x] Route detail shell + Details tab (inline edit)
+- [x] Sidebar: add Routes nav item
+
+## In Progress / Next 🚧
+
+### UI — Phase 2: Carrier detail page  ([[03-UI-Navigation]])
+
+- [x] Shared `DetailTabs` component (`components/detail-shell/DetailTabs.tsx`)
+- [x] Shared `DetailsTable` component (`components/detail-shell/DetailsTable.tsx`)
+- [x] `/carriers/[carrierId]` redirect + nested tab routes
+- [x] Carrier Details tab (inline edit + DetailsTable read view)
+- [x] Carrier Shipments tab (empty state until Phase 4)
+- [x] Carrier Clients tab (empty state until Phase 4)
+- [x] Carrier Routes tab (empty state until Phase 1 routes linking)
+- [x] Update carriers list: row click → detail page, remove Edit modal
+
+### UI — Phase 2b: Route detail shell  ([[03-UI-Navigation]])
+
+- [x] `/routes/[routeId]` layout with header + DetailTabs
+- [x] Route Details tab (inline edit + DetailsTable read view)
+- [x] Route Shipments tab (empty state until Phase 4)
+- [x] Route Carriers tab (empty state until Phase 4)
+- [x] `RouteDeleteButton` component
+
+### UI — Phase 3: Client detail page  ([[03-UI-Navigation]])
+
+- [x] `/clients/[clientId]` redirect + nested tab routes
+- [x] Client Details tab (inline edit + DetailsTable read view)
+- [x] Client Shipments tab (empty state until Phase 4)
+- [x] Client Carriers tab (empty state until Phase 4)
+- [x] `ClientDeleteButton` component
+- [x] Update clients list: row click → detail page, remove Edit modal
 
 ### TMS — Module 1: Trip Creation  ([[11-Module1-Trip-Creation]])
 

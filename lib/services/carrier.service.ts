@@ -8,6 +8,7 @@ import type {
 import {
     createCarrier,
     deleteCarrier,
+    findCarrierById,
     findCarriersByTeamId,
     updateCarrier,
 }                            from "@/lib/repositories/carrier.repository";
@@ -36,6 +37,14 @@ function toCarrierDto(carrier: Carrier): CarrierDto {
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
+
+export async function getCarrier(
+    teamId: string,
+    carrierId: string,
+): Promise<CarrierDto | null> {
+    const row = await findCarrierById(carrierId, teamId);
+    return row ? toCarrierDto(row) : null;
+}
 
 export async function getCarriersForTeam(
     teamId: string,

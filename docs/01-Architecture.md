@@ -53,8 +53,32 @@ app/
   (dashboard)/
     [workspace]/                  workspace-scoped pages
       dashboard/page.tsx
-      carriers/page.tsx
-      clients/page.tsx
+      carriers/
+        page.tsx                  carrier list
+        [carrierId]/
+          details/page.tsx        carrier details tab
+          shipments/page.tsx      carrier's shipments
+          clients/page.tsx        clients via shipments
+          routes/page.tsx         routes serviced
+      clients/
+        page.tsx                  client list
+        [clientId]/
+          details/page.tsx
+          shipments/page.tsx
+          carriers/page.tsx
+      shipments/
+        page.tsx                  shipment list (status tabs)
+        [shipmentId]/
+          details/page.tsx
+          carrier/page.tsx
+          documents/page.tsx
+          timeline/page.tsx
+      routes/
+        page.tsx                  route list (new)
+        [routeId]/
+          details/page.tsx
+          shipments/page.tsx
+          carriers/page.tsx
       trips/
         page.tsx                  trip list
         new/page.tsx              create trip
@@ -69,6 +93,8 @@ app/
       carriers/route.ts
       carriers/[carrierId]/route.ts
       carriers/[carrierId]/trucks/route.ts
+      routes/route.ts
+      routes/[routeId]/route.ts
       trips/route.ts
       trips/[tripId]/route.ts
       trips/[tripId]/status/route.ts
@@ -97,6 +123,8 @@ lib/
       team-members.ts
       access-requests.ts
       carriers.ts
+      clients.ts
+      routes.ts                   (UI Phase 1)
       carrier-trucks.ts           (TMS Module 2)
       trips.ts                    (TMS Module 1)
       trip-carrier-assignments.ts (TMS Module 2)
@@ -110,6 +138,8 @@ lib/
     team.repository.ts
     access-request.repository.ts
     carrier.repository.ts
+    client.repository.ts
+    route.repository.ts           (UI Phase 1)
     carrier-truck.repository.ts
     trip.repository.ts
     carrier-assignment.repository.ts
@@ -119,6 +149,8 @@ lib/
     auth.service.ts
     team.service.ts
     carrier.service.ts
+    client.service.ts
+    route.service.ts              (UI Phase 1)
     trip.service.ts
     carrier-assignment.service.ts
     monitoring.service.ts
@@ -126,6 +158,8 @@ lib/
     auth.dto.ts
     team.dto.ts
     carrier.dto.ts
+    client.dto.ts
+    route.dto.ts                  (UI Phase 1)
     trip.dto.ts
     carrier-assignment.dto.ts
     monitoring.dto.ts

@@ -9,6 +9,17 @@ import type {
 }                   from "@/lib/db/schema";
 import { carriers } from "@/lib/db/schema";
 
+export async function findCarrierById(
+    id: string,
+    teamId: string,
+): Promise<Carrier | null> {
+    const rows = await db()
+        .select()
+        .from(carriers)
+        .where(and(eq(carriers.id, id), eq(carriers.teamId, teamId)));
+    return rows[0] ?? null;
+}
+
 export async function findCarriersByTeamId(teamId: string): Promise<Carrier[]> {
     return db()
         .select()
