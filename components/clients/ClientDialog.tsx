@@ -1,8 +1,22 @@
 'use client';
 
-import {useState} from 'react';
-import {Button, Dialog, Flex, Text, TextArea, TextField} from '@radix-ui/themes';
-import type {ClientDto, CreateClientInput} from '@/lib/dto/client.dto';
+import { useState }  from 'react';
+import {
+    Button,
+    Dialog,
+    Flex,
+    TextArea,
+    TextField,
+}                    from '@radix-ui/themes';
+import type {
+    ClientDto,
+    CreateClientInput
+}                    from '@/lib/dto/client.dto';
+import {
+    apiPatch,
+    apiPost
+}                    from '@/lib/client/api';
+import { useNotify } from '@/lib/client/notifications';
 
 interface ClientDialogProps {
     workspaceSlug: string;
@@ -33,143 +47,109 @@ function clientToForm(client: ClientDto): CreateClientInput {
 }
 
 export function ClientDialog({
-    workspaceSlug,
-    client,
-    open,
-    onOpenChange,
-    onSuccess,
-}: ClientDialogProps): React.ReactElement {
+                                 workspaceSlug,
+                                 client,
+                                 open,
+                                 onOpenChange,
+                                 onSuccess,
+                             }: ClientDialogProps): React.ReactElement {
     const isEditing = Boolean(client);
+    const notify = useNotify();
     const [form, setForm] = useState<CreateClientInput>(
         client ? clientToForm(client) : defaultForm(),
     );
-    const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     function handleOpenChange(next: boolean): void {
-        if (!next) {
+        if ( !next ) {
             setForm(client ? clientToForm(client) : defaultForm());
-            setError(null);
         }
         onOpenChange(next);
     }
 
     function set<K extends keyof CreateClientInput>(key: K, value: CreateClientInput[K]): void {
-        setForm((prev) => ({...prev, [key]: value}));
+        setForm((prev) => ({ ...prev, [key]: value }));
     }
 
     async function handleSubmit(e: React.FormEvent): Promise<void> {
         e.preventDefault();
-        setError(null);
         setSubmitting(true);
 
         try {
-            const url = isEditing
-                ? `/api/${workspaceSlug}/clients/${client!.id}`
-                : `/api/${workspaceSlug}/clients`;
-            const method = isEditing ? 'PATCH' : 'POST';
+            const result = isEditing
+                ? await apiPatch<ClientDto>(`/api/${ workspaceSlug }/clients/${ client!.id }`, form)
+                : await apiPost<ClientDto>(`/api/${ workspaceSlug }/clients`, form);
 
-            const res = await fetch(url, {
-                method,
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(form),
-            });
-
-            if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                setError((body as {error?: string}).error ?? 'Something went wrong.');
+            if ( !result.ok ) {
+                notify(result.error, 'error');
                 return;
             }
 
-            const saved: ClientDto = await res.json();
-            onSuccess(saved);
+            onSuccess(result.data);
             handleOpenChange(false);
         } catch {
-            setError('Network error. Please try again.');
+            notify('Network error. Please try again.', 'error');
         } finally {
             setSubmitting(false);
         }
     }
 
     return (
-        <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+        <Dialog.Root open={ open } onOpenChange={ handleOpenChange }>
             <Dialog.Content maxWidth="480px">
-                <Dialog.Title>{isEditing ? 'Edit Client' : 'New Client'}</Dialog.Title>
+                <Dialog.Title>{ isEditing ? 'Edit Client' : 'New Client' }</Dialog.Title>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={ handleSubmit }>
                     <Flex direction="column" gap="3" mt="4">
-                        <Flex direction="column" gap="1">
-                            <Text as="label" size="2" weight="medium">Company Name *</Text>
-                            <TextField.Root
-                                value={form.name}
-                                onChange={(e) => set('name', e.target.value)}
-                                placeholder="e.g. Acme Logistics SRL"
-                                required
-                            />
-                        </Flex>
+                        <TextField.Root
+                            value={ form.name }
+                            onChange={ (e) => set('name', e.target.value) }
+                            placeholder="Company name *"
+                            required
+                        />
 
-                        <Flex direction="column" gap="1">
-                            <Text as="label" size="2" weight="medium">Contact Person</Text>
-                            <TextField.Root
-                                value={form.contactName ?? ''}
-                                onChange={(e) => set('contactName', e.target.value || null)}
-                                placeholder="e.g. John Smith"
-                            />
-                        </Flex>
+                        <TextField.Root
+                            value={ form.contactName ?? '' }
+                            onChange={ (e) => set('contactName', e.target.value || null) }
+                            placeholder="Contact person"
+                        />
 
                         <Flex gap="3">
-                            <Flex direction="column" gap="1" flexGrow="1">
-                                <Text as="label" size="2" weight="medium">Email</Text>
-                                <TextField.Root
-                                    type="email"
-                                    value={form.contactEmail ?? ''}
-                                    onChange={(e) => set('contactEmail', e.target.value || null)}
-                                    placeholder="contact@company.com"
-                                />
-                            </Flex>
-
-                            <Flex direction="column" gap="1" flexGrow="1">
-                                <Text as="label" size="2" weight="medium">Phone</Text>
-                                <TextField.Root
-                                    value={form.contactPhone ?? ''}
-                                    onChange={(e) => set('contactPhone', e.target.value || null)}
-                                    placeholder="+1 555 000 0000"
-                                />
-                            </Flex>
-                        </Flex>
-
-                        <Flex direction="column" gap="1">
-                            <Text as="label" size="2" weight="medium">Billing Address</Text>
-                            <TextArea
-                                value={form.billingAddress ?? ''}
-                                onChange={(e) => set('billingAddress', e.target.value || null)}
-                                placeholder="Street, City, Country"
-                                rows={2}
+                            <TextField.Root
+                                style={ { flex: 1 } }
+                                type="email"
+                                value={ form.contactEmail ?? '' }
+                                onChange={ (e) => set('contactEmail', e.target.value || null) }
+                                placeholder="Email"
+                            />
+                            <TextField.Root
+                                style={ { flex: 1 } }
+                                value={ form.contactPhone ?? '' }
+                                onChange={ (e) => set('contactPhone', e.target.value || null) }
+                                placeholder="Phone"
                             />
                         </Flex>
 
-                        <Flex direction="column" gap="1">
-                            <Text as="label" size="2" weight="medium">Notes</Text>
-                            <TextArea
-                                value={form.notes ?? ''}
-                                onChange={(e) => set('notes', e.target.value || null)}
-                                placeholder="Additional notes..."
-                                rows={3}
-                            />
-                        </Flex>
+                        <TextArea
+                            value={ form.billingAddress ?? '' }
+                            onChange={ (e) => set('billingAddress', e.target.value || null) }
+                            placeholder="Billing address"
+                            rows={ 2 }
+                        />
 
-                        {error && (
-                            <Text size="2" color="red">{error}</Text>
-                        )}
+                        <TextArea
+                            value={ form.notes ?? '' }
+                            onChange={ (e) => set('notes', e.target.value || null) }
+                            placeholder="Notes"
+                            rows={ 3 }
+                        />
 
                         <Flex gap="3" justify="end" mt="2">
                             <Dialog.Close>
-                                <Button variant="soft" color="gray" type="button">
-                                    Cancel
-                                </Button>
+                                <Button variant="soft" color="gray" type="button">Cancel</Button>
                             </Dialog.Close>
-                            <Button type="submit" disabled={submitting}>
-                                {submitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create client'}
+                            <Button type="submit" disabled={ submitting }>
+                                { submitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create client' }
                             </Button>
                         </Flex>
                     </Flex>

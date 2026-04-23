@@ -1,15 +1,15 @@
 'use client';
 
-import { TextArea }           from '@radix-ui/themes';
-import type { ClientDto }     from '@/lib/dto/client.dto';
+import { TextArea }       from '@radix-ui/themes';
+import type { ClientDto } from '@/lib/dto/client.dto';
 import {
     type CreateClientInput,
     createClientSchema,
-}                             from '@/lib/dto/client.dto';
-import { DetailsForm }        from '@/components/detail-shell/DetailsForm';
-import { DetailsFormRow }     from '@/components/detail-shell/DetailsFormRow';
-import { ClientDeleteButton } from '@/components/clients/ClientDeleteButton';
-import { Input }              from '@/components/ui/Input';
+}                         from '@/lib/dto/client.dto';
+import { DetailsForm }    from '@/components/detail-shell/DetailsForm';
+import { DetailsFormRow } from '@/components/detail-shell/DetailsFormRow';
+import { DeleteButton }   from '@/components/ui/DeleteButton';
+import { Input }          from '@/components/ui/Input';
 
 interface ClientDetailsTabProps {
     client: ClientDto;
@@ -38,10 +38,11 @@ export function ClientDetailsTab({
             endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.id }` }
             toForm={ clientToForm }
             deleteSlot={ (form) => (
-                <ClientDeleteButton
-                    clientId={ initialClient.id }
-                    clientName={ form.name }
-                    workspaceSlug={ workspaceSlug }
+                <DeleteButton
+                    endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.id }` }
+                    redirectTo={ `/${ workspaceSlug }/clients` }
+                    entityLabel="client"
+                    entityName={ form.name }
                 />
             ) }
         >

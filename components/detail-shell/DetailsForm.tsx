@@ -10,9 +10,10 @@ import {
     Button,
     Flex,
     Table,
-    Text,
 }                       from '@radix-ui/themes';
 import type { ZodType } from 'zod';
+import { apiPatch }     from '@/lib/client/api';
+import { useNotify }    from '@/lib/client/notifications';
 
 // ---------------------------------------------------------------------------
 // Field-error context (consumed by DetailsFormRow)
@@ -66,10 +67,11 @@ export function DetailsForm<TForm extends object, TDto>({
                                                             children,
                                                         }: DetailsFormProps<TForm, TDto>): React.ReactElement {
     const router = useRouter();
+    const notify = useNotify();
+
     const [form, setForm] = useState<TForm>(initial);
     const [savedForm, setSavedForm] = useState<TForm>(initial);
     const [saving, setSaving] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const isDirty = JSON.stringify(form) !== JSON.stringify(savedForm);
@@ -80,7 +82,6 @@ export function DetailsForm<TForm extends object, TDto>({
 
     async function handleSubmit(e: React.FormEvent): Promise<void> {
         e.preventDefault();
-        setSaveError(null);
 
         const parsed = schema.safeParse(form);
         if ( !parsed.success ) {
@@ -91,31 +92,21 @@ export function DetailsForm<TForm extends object, TDto>({
         setSaving(true);
 
         try {
-            const res = await fetch(endpoint, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(parsed.data),
-            });
-
-            if ( !res.ok ) {
-                const body = await res.json().catch(() => ({})) as {
-                    error?: string;
-                    fieldErrors?: Record<string, string>;
-                };
-                setSaveError(body.error ?? 'Something went wrong.');
-                if ( body.fieldErrors ) {
-                    setFieldErrors(body.fieldErrors);
+            const result = await apiPatch<TDto>(endpoint, parsed.data);
+            if ( !result.ok ) {
+                notify(result.error, 'error');
+                if ( result.fieldErrors ) {
+                    setFieldErrors(result.fieldErrors);
                 }
                 return;
             }
-
-            const saved = (await res.json()) as TDto;
-            const savedAsForm = toForm(saved);
+            const savedAsForm = toForm(result.data);
             setForm(savedAsForm);
             setSavedForm(savedAsForm);
             router.refresh();
+            notify('Changes saved successfully');
         } catch {
-            setSaveError('Network error. Please try again.');
+            notify('Network error. Please try again.', 'error');
         } finally {
             setSaving(false);
         }
@@ -130,10 +121,6 @@ export function DetailsForm<TForm extends object, TDto>({
                             { children({ form, set }) }
                         </Table.Body>
                     </Table.Root>
-
-                    { saveError && (
-                        <Text size="2" color="red">{ saveError }</Text>
-                    ) }
 
                     <Flex gap="3" justify="end">
                         <Button type="submit" disabled={ !isDirty || saving }>

@@ -1,4 +1,5 @@
-import { z } from "zod";
+import { z }      from 'zod';
+import { fields } from '@/lib/validation/fields';
 
 const trimmed = z.string().trim();
 
@@ -7,10 +8,7 @@ const trimmed = z.string().trim();
 // ---------------------------------------------------------------------------
 
 export const loginCredentialsSchema = z.object({
-    email: z
-        .email("Use a valid address with @ (e.g. you@domain.com)")
-        .trim()
-        .min(1, "Enter your email (include @)"),
+    email: fields.email(true),
     password: trimmed
         .min(8, "Password must be at least 8 characters")
         .regex(/[A-Z]/, "Password must include at least one capital letter")
@@ -70,11 +68,9 @@ export interface SessionUserDto {
 // ---------------------------------------------------------------------------
 
 export const requestAccessSchema = z.object({
-    fullName: trimmed.min(1, "Full name is required").max(200),
-    email: z
-        .email("Use a valid address with @ (e.g. you@domain.com)")
-        .trim().min(1),
-    companyName: trimmed.min(1, "Company name is required").max(200),
+    fullName: trimmed.min(1, 'Full name is required').max(200),
+    email: fields.email(true),
+    companyName: trimmed.min(1, 'Company name is required').max(200),
     message: trimmed.max(2000).optional(),
 });
 

@@ -1,10 +1,11 @@
-import { redirect }       from "next/navigation";
-import { Sidebar }        from "@/components/sidebar/sidebar";
+import { redirect }       from 'next/navigation';
+import { Sidebar }        from '@/components/sidebar/sidebar';
+import { WorkspaceShell } from '@/components/ui/WorkspaceShell';
 import {
     findMembership,
     findTeamBySlug,
-}                         from "@/lib/repositories/team.repository";
-import { getSessionUser } from "@/lib/services/auth.service";
+}                         from '@/lib/repositories/team.repository';
+import { getSessionUser } from '@/lib/services/auth.service';
 
 export const dynamic = "force-dynamic";
 
@@ -35,15 +36,17 @@ export default async function WorkspaceLayout({
     }
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            <Sidebar
-                user={ { email: user.email, id: user.id } }
-                workspace={ { slug: team.slug, name: team.name } }
-                isAdmin={ user.role === 'admin' }
-            />
-            <main className="flex-1 overflow-auto bg-background-primary">
-                { children }
-            </main>
-        </div>
+        <WorkspaceShell>
+            <div className="flex h-screen overflow-hidden">
+                <Sidebar
+                    user={ { email: user.email, id: user.id } }
+                    workspace={ { slug: team.slug, name: team.name } }
+                    isAdmin={ user.role === 'admin' }
+                />
+                <main className="flex-1 overflow-auto bg-background-primary">
+                    { children }
+                </main>
+            </div>
+        </WorkspaceShell>
     );
 }

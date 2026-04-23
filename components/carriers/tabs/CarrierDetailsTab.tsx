@@ -3,18 +3,18 @@
 import {
     Select,
     TextArea,
-}                              from '@radix-ui/themes';
-import type { CarrierDto }     from '@/lib/dto/carrier.dto';
+}                          from '@radix-ui/themes';
+import type { CarrierDto } from '@/lib/dto/carrier.dto';
 import {
     CARRIER_MODE_LABELS,
     type CarrierMode,
     type CreateCarrierInput,
     createCarrierSchema,
-}                              from '@/lib/dto/carrier.dto';
-import { DetailsForm }         from '@/components/detail-shell/DetailsForm';
-import { DetailsFormRow }      from '@/components/detail-shell/DetailsFormRow';
-import { CarrierDeleteButton } from '@/components/carriers/CarrierDeleteButton';
-import { Input }               from '@/components/ui/Input';
+}                          from '@/lib/dto/carrier.dto';
+import { DetailsForm }     from '@/components/detail-shell/DetailsForm';
+import { DetailsFormRow }  from '@/components/detail-shell/DetailsFormRow';
+import { DeleteButton }    from '@/components/ui/DeleteButton';
+import { Input }           from '@/components/ui/Input';
 
 interface CarrierDetailsTabProps {
     carrier: CarrierDto;
@@ -45,10 +45,11 @@ export function CarrierDetailsTab({
             endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.id }` }
             toForm={ carrierToForm }
             deleteSlot={ (form) => (
-                <CarrierDeleteButton
-                    carrierId={ initialCarrier.id }
-                    carrierName={ form.name }
-                    workspaceSlug={ workspaceSlug }
+                <DeleteButton
+                    endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.id }` }
+                    redirectTo={ `/${ workspaceSlug }/carriers` }
+                    entityLabel="carrier"
+                    entityName={ form.name }
                 />
             ) }
         >

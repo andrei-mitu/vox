@@ -1,15 +1,15 @@
 'use client';
 
-import { TextArea }          from '@radix-ui/themes';
-import type { RouteDto }     from '@/lib/dto/route.dto';
+import { TextArea }       from '@radix-ui/themes';
+import type { RouteDto }  from '@/lib/dto/route.dto';
 import {
     type CreateRouteInput,
     createRouteSchema,
-}                            from '@/lib/dto/route.dto';
-import { DetailsForm }       from '@/components/detail-shell/DetailsForm';
-import { DetailsFormRow }    from '@/components/detail-shell/DetailsFormRow';
-import { RouteDeleteButton } from '@/components/routes/RouteDeleteButton';
-import { Input }             from '@/components/ui/Input';
+}                         from '@/lib/dto/route.dto';
+import { DetailsForm }    from '@/components/detail-shell/DetailsForm';
+import { DetailsFormRow } from '@/components/detail-shell/DetailsFormRow';
+import { DeleteButton }   from '@/components/ui/DeleteButton';
+import { Input }          from '@/components/ui/Input';
 
 interface RouteDetailsTabProps {
     route: RouteDto;
@@ -39,10 +39,11 @@ export function RouteDetailsTab({
             endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.id }` }
             toForm={ routeToForm }
             deleteSlot={ (form) => (
-                <RouteDeleteButton
-                    routeId={ initialRoute.id }
-                    routeName={ `${ form.originCity }, ${ form.originCountry } → ${ form.destCity }, ${ form.destCountry }` }
-                    workspaceSlug={ workspaceSlug }
+                <DeleteButton
+                    endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.id }` }
+                    redirectTo={ `/${ workspaceSlug }/routes` }
+                    entityLabel="route"
+                    entityName={ `${ form.originCity }, ${ form.originCountry } → ${ form.destCity }, ${ form.destCountry }` }
                 />
             ) }
         >

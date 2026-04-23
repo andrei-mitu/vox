@@ -6,59 +6,49 @@ import {
     AlertDialog,
     Button,
     Flex,
-    Text,
 }                    from '@radix-ui/themes';
 import { Trash2 }    from 'lucide-react';
+import { apiDelete } from '@/lib/client/api';
+import { useNotify } from '@/lib/client/notifications';
 
-interface ClientDeleteButtonProps {
-    clientId: string;
-    clientName: string;
-    workspaceSlug: string;
+interface DeleteButtonProps {
+    endpoint: string;
+    redirectTo: string;
+    entityLabel: string;
+    entityName: string;
 }
 
-export function ClientDeleteButton({
-                                       clientId,
-                                       clientName,
-                                       workspaceSlug,
-                                   }: ClientDeleteButtonProps): React.ReactElement {
+export function DeleteButton({
+                                 endpoint,
+                                 redirectTo,
+                                 entityLabel,
+                                 entityName,
+                             }: DeleteButtonProps): React.ReactElement {
     const router = useRouter();
+    const notify = useNotify();
     const [open, setOpen] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
 
     async function handleDelete(): Promise<void> {
-        setError(null);
         setDeleting(true);
-
         try {
-            const res = await fetch(`/api/${ workspaceSlug }/clients/${ clientId }`, {
-                method: 'DELETE',
-            });
-
-            if ( !res.ok ) {
-                const body = await res.json().catch(() => ({}));
-                setError((body as { error?: string }).error ?? 'Failed to delete client.');
+            const result = await apiDelete(endpoint);
+            if ( !result.ok ) {
+                notify(result.error, 'error');
+                setOpen(false);
                 return;
             }
-
-            router.push(`/${ workspaceSlug }/clients`);
+            router.push(redirectTo);
         } catch {
-            setError('Network error. Please try again.');
+            notify('Network error. Please try again.', 'error');
+            setOpen(false);
         } finally {
             setDeleting(false);
         }
     }
 
     return (
-        <AlertDialog.Root
-            open={ open }
-            onOpenChange={ (next) => {
-                if ( !next ) {
-                    setError(null);
-                }
-                setOpen(next);
-            } }
-        >
+        <AlertDialog.Root open={ open } onOpenChange={ setOpen }>
             <AlertDialog.Trigger>
                 <Button variant="soft" color="red">
                     <Trash2 size={ 14 }/>
@@ -67,15 +57,11 @@ export function ClientDeleteButton({
             </AlertDialog.Trigger>
 
             <AlertDialog.Content maxWidth="400px">
-                <AlertDialog.Title>Delete client?</AlertDialog.Title>
+                <AlertDialog.Title>Delete { entityLabel }?</AlertDialog.Title>
                 <AlertDialog.Description>
-                    <strong>{ clientName }</strong> will be permanently removed. This action
+                    <strong>{ entityName }</strong> will be permanently removed. This action
                     cannot be undone.
                 </AlertDialog.Description>
-
-                { error && (
-                    <Text size="2" color="red" mt="2" as="p">{ error }</Text>
-                ) }
 
                 <Flex gap="3" mt="4" justify="end">
                     <AlertDialog.Cancel>
