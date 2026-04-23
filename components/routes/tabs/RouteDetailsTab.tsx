@@ -1,20 +1,15 @@
 'use client';
 
-import { useState }     from 'react';
-import { useRouter }    from 'next/navigation';
+import { TextArea }          from '@radix-ui/themes';
+import type { RouteDto }     from '@/lib/dto/route.dto';
 import {
-    Button,
-    Flex,
-    Text,
-    TextArea,
-    TextField,
-}                       from '@radix-ui/themes';
-import { Pencil }       from 'lucide-react';
-import type {
-    CreateRouteInput,
-    RouteDto,
-}                       from '@/lib/dto/route.dto';
-import { DetailsTable } from '@/components/detail-shell/DetailsTable';
+    type CreateRouteInput,
+    createRouteSchema,
+}                            from '@/lib/dto/route.dto';
+import { DetailsForm }       from '@/components/detail-shell/DetailsForm';
+import { DetailsFormRow }    from '@/components/detail-shell/DetailsFormRow';
+import { RouteDeleteButton } from '@/components/routes/RouteDeleteButton';
+import { Input }             from '@/components/ui/Input';
 
 interface RouteDetailsTabProps {
     route: RouteDto;
@@ -37,182 +32,79 @@ export function RouteDetailsTab({
                                     route: initialRoute,
                                     workspaceSlug,
                                 }: RouteDetailsTabProps): React.ReactElement {
-    const router = useRouter();
-    const [route, setRoute] = useState<RouteDto>(initialRoute);
-    const [editing, setEditing] = useState(false);
-    const [form, setForm] = useState<CreateRouteInput>(routeToForm(initialRoute));
-    const [saveError, setSaveError] = useState<string | null>(null);
-    const [saving, setSaving] = useState(false);
+    return (
+        <DetailsForm
+            initial={ routeToForm(initialRoute) }
+            schema={ createRouteSchema }
+            endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.id }` }
+            toForm={ routeToForm }
+            deleteSlot={ (form) => (
+                <RouteDeleteButton
+                    routeId={ initialRoute.id }
+                    routeName={ `${ form.originCity }, ${ form.originCountry } → ${ form.destCity }, ${ form.destCountry }` }
+                    workspaceSlug={ workspaceSlug }
+                />
+            ) }
+        >
+            { ({ form, set }) => (
+                <>
+                    <DetailsFormRow label="Origin city" name="originCity">
+                        <Input
+                            value={ form.originCity }
+                            onChange={ (e) => set('originCity', e.target.value) }
+                        />
+                    </DetailsFormRow>
 
-    function startEdit(): void {
-        setForm(routeToForm(route));
-        setSaveError(null);
-        setEditing(true);
-    }
+                    <DetailsFormRow label="Origin country" name="originCountry">
+                        <Input
+                            value={ form.originCountry }
+                            onChange={ (e) => set('originCountry', e.target.value) }
+                        />
+                    </DetailsFormRow>
 
-    function cancelEdit(): void {
-        setEditing(false);
-        setSaveError(null);
-    }
+                    <DetailsFormRow label="Destination city" name="destCity">
+                        <Input
+                            value={ form.destCity }
+                            onChange={ (e) => set('destCity', e.target.value) }
+                        />
+                    </DetailsFormRow>
 
-    function set<K extends keyof CreateRouteInput>(key: K, value: CreateRouteInput[K]): void {
-        setForm((prev) => ({ ...prev, [key]: value }));
-    }
+                    <DetailsFormRow label="Destination country" name="destCountry">
+                        <Input
+                            value={ form.destCountry }
+                            onChange={ (e) => set('destCountry', e.target.value) }
+                        />
+                    </DetailsFormRow>
 
-    async function handleSave(e: React.FormEvent): Promise<void> {
-        e.preventDefault();
-        setSaveError(null);
-        setSaving(true);
+                    <DetailsFormRow label="Distance (km)" name="distanceKm">
+                        <Input
+                            type="number"
+                            min="1"
+                            value={ form.distanceKm ?? '' }
+                            onChange={ (e) => set('distanceKm', e.target.value ? Number(e.target.value) : null) }
+                            placeholder="e.g. 450"
+                        />
+                    </DetailsFormRow>
 
-        try {
-            const res = await fetch(`/api/${ workspaceSlug }/routes/${ route.id }`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
-            });
+                    <DetailsFormRow label="Transit days" name="transitDays">
+                        <Input
+                            type="number"
+                            min="1"
+                            value={ form.transitDays ?? '' }
+                            onChange={ (e) => set('transitDays', e.target.value ? Number(e.target.value) : null) }
+                            placeholder="e.g. 2"
+                        />
+                    </DetailsFormRow>
 
-            if ( !res.ok ) {
-                const body = await res.json().catch(() => ({}));
-                setSaveError((body as { error?: string }).error ?? 'Something went wrong.');
-                return;
-            }
-
-            const saved: RouteDto = await res.json();
-            setRoute(saved);
-            setEditing(false);
-            router.refresh();
-        } catch {
-            setSaveError('Network error. Please try again.');
-        } finally {
-            setSaving(false);
-        }
-    }
-
-    if ( editing ) {
-        return (
-            <form onSubmit={ handleSave }>
-                <Flex direction="column" gap="4" style={ { maxWidth: 560 } }>
-                    <Text size="2" weight="medium" color="gray">Origin</Text>
-                    <Flex gap="3">
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">City *</Text>
-                            <TextField.Root
-                                value={ form.originCity }
-                                onChange={ (e) => set('originCity', e.target.value) }
-                                required
-                            />
-                        </Flex>
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">Country *</Text>
-                            <TextField.Root
-                                value={ form.originCountry }
-                                onChange={ (e) => set('originCountry', e.target.value) }
-                                required
-                            />
-                        </Flex>
-                    </Flex>
-
-                    <Text size="2" weight="medium" color="gray">Destination</Text>
-                    <Flex gap="3">
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">City *</Text>
-                            <TextField.Root
-                                value={ form.destCity }
-                                onChange={ (e) => set('destCity', e.target.value) }
-                                required
-                            />
-                        </Flex>
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">Country *</Text>
-                            <TextField.Root
-                                value={ form.destCountry }
-                                onChange={ (e) => set('destCountry', e.target.value) }
-                                required
-                            />
-                        </Flex>
-                    </Flex>
-
-                    <Flex gap="3">
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">Distance (km)</Text>
-                            <TextField.Root
-                                type="number"
-                                min="1"
-                                value={ form.distanceKm ?? '' }
-                                onChange={ (e) =>
-                                    set('distanceKm', e.target.value ? Number(e.target.value) : null)
-                                }
-                                placeholder="e.g. 450"
-                            />
-                        </Flex>
-                        <Flex direction="column" gap="1" flexGrow="1">
-                            <Text as="label" size="2" weight="medium">Transit days</Text>
-                            <TextField.Root
-                                type="number"
-                                min="1"
-                                value={ form.transitDays ?? '' }
-                                onChange={ (e) =>
-                                    set('transitDays', e.target.value ? Number(e.target.value) : null)
-                                }
-                                placeholder="e.g. 2"
-                            />
-                        </Flex>
-                    </Flex>
-
-                    <Flex direction="column" gap="1">
-                        <Text as="label" size="2" weight="medium">Notes</Text>
+                    <DetailsFormRow label="Notes" name="notes" align="top">
                         <TextArea
                             value={ form.notes ?? '' }
                             onChange={ (e) => set('notes', e.target.value || null) }
                             rows={ 4 }
                         />
-                    </Flex>
-
-                    { saveError && (
-                        <Text size="2" color="red">{ saveError }</Text>
-                    ) }
-
-                    <Flex gap="3">
-                        <Button type="submit" disabled={ saving }>
-                            { saving ? 'Saving…' : 'Save changes' }
-                        </Button>
-                        <Button variant="soft" color="gray" type="button" onClick={ cancelEdit }>
-                            Cancel
-                        </Button>
-                    </Flex>
-                </Flex>
-            </form>
-        );
-    }
-
-    return (
-        <Flex direction="column" gap="4" style={ { maxWidth: 640 } }>
-            <Flex justify="end">
-                <Button variant="soft" onClick={ startEdit }>
-                    <Pencil size={ 14 }/>
-                    Edit
-                </Button>
-            </Flex>
-
-            <DetailsTable rows={ [
-                { label: 'Origin city', value: route.originCity },
-                { label: 'Origin country', value: route.originCountry },
-                { label: 'Destination city', value: route.destCity },
-                { label: 'Destination country', value: route.destCountry },
-                {
-                    label: 'Distance',
-                    value: route.distanceKm != null
-                        ? `${ route.distanceKm.toLocaleString() } km`
-                        : null,
-                },
-                {
-                    label: 'Est. transit',
-                    value: route.transitDays != null
-                        ? `${ route.transitDays } ${ route.transitDays === 1 ? 'day' : 'days' }`
-                        : null,
-                },
-                { label: 'Notes', value: route.notes },
-            ] }/>
-        </Flex>
+                    </DetailsFormRow>
+                </>
+            ) }
+        </DetailsForm>
     );
 }

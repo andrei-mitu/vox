@@ -1,18 +1,17 @@
 import {
     notFound,
     redirect,
-}                            from 'next/navigation';
-import Link                  from 'next/link';
+}                         from 'next/navigation';
+import Link               from 'next/link';
 import {
     Box,
     Flex,
     Heading,
-}                            from '@radix-ui/themes';
-import { ArrowLeft }         from 'lucide-react';
-import { DetailTabs }        from '@/components/detail-shell/DetailTabs';
-import { RouteDeleteButton } from '@/components/routes/RouteDeleteButton';
-import { findTeamBySlug }    from '@/lib/repositories/team.repository';
-import { getRoute }          from '@/lib/services/route.service';
+}                         from '@radix-ui/themes';
+import { ArrowLeft }      from 'lucide-react';
+import { DetailTabs }     from '@/components/detail-shell/DetailTabs';
+import { findTeamBySlug } from '@/lib/repositories/team.repository';
+import { getRoute }       from '@/lib/services/route.service';
 
 export default async function RouteDetailLayout({
                                                     children,
@@ -59,11 +58,6 @@ export default async function RouteDetailLayout({
                 {/* Title row */ }
                 <Flex justify="between" align="start" mb="4">
                     <Heading size="6">{ displayName }</Heading>
-                    <RouteDeleteButton
-                        routeId={ route.id }
-                        routeName={ displayName }
-                        workspaceSlug={ slug }
-                    />
                 </Flex>
 
                 {/* Tabs */ }

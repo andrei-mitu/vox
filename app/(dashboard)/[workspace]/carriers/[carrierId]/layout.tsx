@@ -11,7 +11,6 @@ import {
 }                              from "@radix-ui/themes";
 import { ArrowLeft }           from "lucide-react";
 import { DetailTabs }          from "@/components/detail-shell/DetailTabs";
-import { CarrierDeleteButton } from "@/components/carriers/CarrierDeleteButton";
 import { CARRIER_MODE_LABELS } from "@/lib/dto/carrier.dto";
 import { findTeamBySlug }      from "@/lib/repositories/team.repository";
 import { getCarrier }          from "@/lib/services/carrier.service";
@@ -75,11 +74,6 @@ export default async function CarrierDetailLayout({
                             <Badge variant="outline" color="gray">{ carrier.code }</Badge>
                         </Flex>
                     </Box>
-                    <CarrierDeleteButton
-                        carrierId={ carrier.id }
-                        carrierName={ carrier.name }
-                        workspaceSlug={ slug }
-                    />
                 </Flex>
 
                 {/* Tabs */ }

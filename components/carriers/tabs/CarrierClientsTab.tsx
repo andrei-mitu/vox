@@ -1,13 +1,10 @@
-import {
-    Flex,
-    Text
-} from '@radix-ui/themes';
+import { EmptyTabState } from '@/components/detail-shell/EmptyTabState';
 
 export function CarrierClientsTab(): React.ReactElement {
     return (
-        <Flex direction="column" align="center" py="9" gap="2">
-            <Text size="3" color="gray">No clients yet.</Text>
-            <Text size="2" color="gray">Clients linked via shipments with this carrier will appear here.</Text>
-        </Flex>
+        <EmptyTabState
+            title="No clients yet."
+            description="Clients linked via shipments with this carrier will appear here."
+        />
     );
 }

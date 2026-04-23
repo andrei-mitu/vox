@@ -1,18 +1,17 @@
 import {
     notFound,
     redirect,
-}                             from 'next/navigation';
-import Link                   from 'next/link';
+}                         from 'next/navigation';
+import Link               from 'next/link';
 import {
     Box,
     Flex,
     Heading,
-}                             from '@radix-ui/themes';
-import { ArrowLeft }          from 'lucide-react';
-import { DetailTabs }         from '@/components/detail-shell/DetailTabs';
-import { ClientDeleteButton } from '@/components/clients/ClientDeleteButton';
-import { findTeamBySlug }     from '@/lib/repositories/team.repository';
-import { getClient }          from '@/lib/services/client.service';
+}                         from '@radix-ui/themes';
+import { ArrowLeft }      from 'lucide-react';
+import { DetailTabs }     from '@/components/detail-shell/DetailTabs';
+import { findTeamBySlug } from '@/lib/repositories/team.repository';
+import { getClient }      from '@/lib/services/client.service';
 
 export default async function ClientDetailLayout({
                                                      children,
@@ -58,11 +57,6 @@ export default async function ClientDetailLayout({
                 {/* Title row */ }
                 <Flex justify="between" align="start" mb="4">
                     <Heading size="6">{ client.name }</Heading>
-                    <ClientDeleteButton
-                        clientId={ client.id }
-                        clientName={ client.name }
-                        workspaceSlug={ slug }
-                    />
                 </Flex>
 
                 {/* Tabs */ }

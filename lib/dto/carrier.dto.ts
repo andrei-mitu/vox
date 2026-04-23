@@ -26,9 +26,8 @@ export const createCarrierSchema = z.object({
     status: z.enum(["active", "inactive"]).default("active"),
     contactName: z.string().trim().max(200).nullable().optional(),
     contactEmail: z
-        .string()
+        .email("Use a valid address with @ (e.g. you@domain.com)")
         .trim()
-        .email("Enter a valid email")
         .max(254)
         .nullable()
         .optional(),

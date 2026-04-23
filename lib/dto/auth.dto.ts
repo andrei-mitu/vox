@@ -71,7 +71,9 @@ export interface SessionUserDto {
 
 export const requestAccessSchema = z.object({
     fullName: trimmed.min(1, "Full name is required").max(200),
-    email: z.email("Enter a valid email address").trim().min(1),
+    email: z
+        .email("Use a valid address with @ (e.g. you@domain.com)")
+        .trim().min(1),
     companyName: trimmed.min(1, "Company name is required").max(200),
     message: trimmed.max(2000).optional(),
 });
