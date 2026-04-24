@@ -1,9 +1,8 @@
 'use client';
 
-import { useState }      from 'react';
-import { useRouter }     from 'next/navigation';
+import { useState }            from 'react';
+import { useRouter }           from 'next/navigation';
 import {
-    AlertDialog,
     Badge,
     Button,
     Flex,
@@ -11,10 +10,12 @@ import {
     IconButton,
     Table,
     Text,
-}                        from '@radix-ui/themes';
-import { Trash2 }        from 'lucide-react';
-import { RouteDialog }   from './RouteDialog';
-import type { RouteDto } from '@/lib/dto/route.dto';
+}                              from '@radix-ui/themes';
+import { Trash2 }              from 'lucide-react';
+import { RouteDialog }         from './RouteDialog';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { useEntityDelete }     from '@/hooks/use-entity-delete';
+import type { RouteDto }       from '@/lib/dto/route.dto';
 
 interface RoutesClientProps {
     initialRoutes: RouteDto[];
@@ -28,9 +29,11 @@ export function RoutesClient({
     const router = useRouter();
     const [routes, setRoutes] = useState<RouteDto[]>(initialRoutes);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState<RouteDto | undefined>(undefined);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [deleting, setDeleting] = useState(false);
+
+    const { deleteTarget, setDeleteTarget, deleting, handleDelete } = useEntityDelete<RouteDto>({
+        endpoint: (r) => `/api/${ workspaceSlug }/routes/${ r.seqId }`,
+        onDeleted: (r) => setRoutes((prev) => prev.filter((x) => x.id !== r.id)),
+    });
 
     function handleSaved(saved: RouteDto): void {
         setRoutes((prev) => {
@@ -42,34 +45,6 @@ export function RoutesClient({
                 `${ a.originCity }${ a.destCity }`.localeCompare(`${ b.originCity }${ b.destCity }`),
             );
         });
-    }
-
-    async function handleDelete(): Promise<void> {
-        if ( !deleteTarget ) {
-            return;
-        }
-        setDeleteError(null);
-        setDeleting(true);
-
-        try {
-            const res = await fetch(
-                `/api/${ workspaceSlug }/routes/${ deleteTarget.id }`,
-                { method: 'DELETE' },
-            );
-
-            if ( !res.ok ) {
-                const body = await res.json().catch(() => ({}));
-                setDeleteError((body as { error?: string }).error ?? 'Failed to delete route.');
-                return;
-            }
-
-            setRoutes((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-            setDeleteTarget(undefined);
-        } catch {
-            setDeleteError('Network error. Please try again.');
-        } finally {
-            setDeleting(false);
-        }
     }
 
     return (
@@ -104,9 +79,7 @@ export function RoutesClient({
                                 align="center"
                                 style={ { cursor: 'pointer' } }
                                 onClick={ () =>
-                                    router.push(
-                                        `/${ workspaceSlug }/routes/${ route.id }/details`,
-                                    )
+                                    router.push(`/${ workspaceSlug }/routes/${ route.seqId }/details`)
                                 }
                             >
                                 <Table.Cell>
@@ -142,10 +115,7 @@ export function RoutesClient({
                                             size="1"
                                             color="red"
                                             aria-label="Delete route"
-                                            onClick={ () => {
-                                                setDeleteError(null);
-                                                setDeleteTarget(route);
-                                            } }
+                                            onClick={ () => setDeleteTarget(route) }
                                         >
                                             <Trash2 size={ 14 }/>
                                         </IconButton>
@@ -164,40 +134,27 @@ export function RoutesClient({
                 onSuccess={ handleSaved }
             />
 
-            <AlertDialog.Root
+            <DeleteConfirmDialog
                 open={ Boolean(deleteTarget) }
                 onOpenChange={ (open) => {
                     if ( !open ) {
                         setDeleteTarget(undefined);
-                        setDeleteError(null);
                     }
                 } }
-            >
-                <AlertDialog.Content maxWidth="400px">
-                    <AlertDialog.Title>Delete route?</AlertDialog.Title>
-                    <AlertDialog.Description>
+                title="Delete route?"
+                description={
+                    <>
                         <strong>
                             { deleteTarget?.originCity }, { deleteTarget?.originCountry }
                             { ' → ' }
                             { deleteTarget?.destCity }, { deleteTarget?.destCountry }
                         </strong>{ ' ' }
                         will be permanently removed. This action cannot be undone.
-                    </AlertDialog.Description>
-
-                    { deleteError && (
-                        <Text size="2" color="red" mt="2" as="p">{ deleteError }</Text>
-                    ) }
-
-                    <Flex gap="3" mt="4" justify="end">
-                        <AlertDialog.Cancel>
-                            <Button variant="soft" color="gray">Cancel</Button>
-                        </AlertDialog.Cancel>
-                        <Button color="red" onClick={ handleDelete } disabled={ deleting }>
-                            { deleting ? 'Deleting…' : 'Delete' }
-                        </Button>
-                    </Flex>
-                </AlertDialog.Content>
-            </AlertDialog.Root>
+                    </>
+                }
+                onConfirm={ handleDelete }
+                deleting={ deleting }
+            />
         </>
     );
 }

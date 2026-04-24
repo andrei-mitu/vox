@@ -16,7 +16,7 @@ export function DetailTabs({ tabs }: DetailTabsProps): React.ReactElement {
     const pathname = usePathname();
 
     return (
-        <div className="flex border-b border-[var(--gray-6)]">
+        <div className="flex border-b border-(--gray-6)">
             { tabs.map((tab) => {
                 const isActive = pathname === tab.href;
                 return (
@@ -26,8 +26,8 @@ export function DetailTabs({ tabs }: DetailTabsProps): React.ReactElement {
                         className={ [
                             'px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
                             isActive
-                                ? 'border-[var(--accent-9)] text-[var(--accent-9)]'
-                                : 'border-transparent text-[var(--gray-11)] hover:text-[var(--gray-12)]',
+                                ? 'border-(--accent-9) text-(--accent-9)'
+                                : 'border-transparent text-(--gray-11) hover:text-(--gray-12)',
                         ].join(' ') }
                     >
                         { tab.label }

@@ -5,4 +5,5 @@ export * from "./profiles";
 export * from "./routes";
 export * from "./team-members";
 export * from "./teams";
+export * from "./trips";
 export * from "./users";

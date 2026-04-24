@@ -1,18 +1,16 @@
 import { readJsonBody }           from '@/lib/api/request';
 import { ApiResponse }            from '@/lib/api/response';
+import { parseSeqId }             from '@/lib/api/parse-seq-id';
 import { withWorkspace }          from '@/lib/api/with-workspace';
 import { parseUpdateCarrierBody } from '@/lib/dto/carrier.dto';
-import { fields }                 from '@/lib/validation/fields';
 import {
     removeCarrier,
     updateExistingCarrier,
 }                                 from '@/lib/services/carrier.service';
 
-const isUuid = (v: string) => fields.uuid().safeParse(v).success;
-
 export const PATCH = withWorkspace(async (req, { team, params }) => {
-    const { carrierId } = params;
-    if ( !isUuid(carrierId) ) {
+    const seqId = parseSeqId(params.carrierId);
+    if ( seqId === null ) {
         return ApiResponse.notFound('Carrier not found.');
     }
 
@@ -26,7 +24,7 @@ export const PATCH = withWorkspace(async (req, { team, params }) => {
         return ApiResponse.badRequest(parsed.message);
     }
 
-    const result = await updateExistingCarrier(carrierId, team.id, parsed.data);
+    const result = await updateExistingCarrier(seqId, team.id, parsed.data);
     if ( !result.ok ) {
         return ApiResponse.error(result.message, result.status);
     }
@@ -35,12 +33,12 @@ export const PATCH = withWorkspace(async (req, { team, params }) => {
 });
 
 export const DELETE = withWorkspace(async (_req, { team, params }) => {
-    const { carrierId } = params;
-    if ( !isUuid(carrierId) ) {
+    const seqId = parseSeqId(params.carrierId);
+    if ( seqId === null ) {
         return ApiResponse.notFound('Carrier not found.');
     }
 
-    const result = await removeCarrier(carrierId, team.id);
+    const result = await removeCarrier(seqId, team.id);
     if ( !result.ok ) {
         return ApiResponse.error(result.message, result.status);
     }

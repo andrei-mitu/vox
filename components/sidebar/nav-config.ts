@@ -1,10 +1,10 @@
 import {
     LayoutDashboard,
     type LucideIcon,
-    Package,
+    MapPin,
     Route,
     Truck,
-    Users
+    Users,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -15,10 +15,10 @@ export interface NavItem {
 
 export function getNavItems(workspaceSlug: string): NavItem[] {
     return [
-        { label: 'Dashboard', href: `/${workspaceSlug}/dashboard`, icon: LayoutDashboard },
-        { label: 'Shipments', href: `/${workspaceSlug}/shipments`, icon: Package },
+        { label: 'Dashboard', href: `/${ workspaceSlug }/dashboard`, icon: LayoutDashboard },
+        { label: 'Trips', href: `/${ workspaceSlug }/trips`, icon: MapPin },
         { label: 'Routes', href: `/${ workspaceSlug }/routes`, icon: Route },
-        { label: 'Carriers', href: `/${workspaceSlug}/carriers`, icon: Truck },
+        { label: 'Carriers', href: `/${ workspaceSlug }/carriers`, icon: Truck },
         { label: 'Clients', href: `/${ workspaceSlug }/clients`, icon: Users },
     ];
 }

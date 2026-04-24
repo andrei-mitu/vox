@@ -1,22 +1,17 @@
 'use client';
 
-import { useState }  from 'react';
 import {
     Button,
     Dialog,
     Flex,
     TextArea,
     TextField,
-}                    from '@radix-ui/themes';
+}                        from '@radix-ui/themes';
 import type {
     ClientDto,
-    CreateClientInput
-}                    from '@/lib/dto/client.dto';
-import {
-    apiPatch,
-    apiPost
-}                    from '@/lib/client/api';
-import { useNotify } from '@/lib/client/notifications';
+    CreateClientInput,
+}                        from '@/lib/dto/client.dto';
+import { useDialogForm } from '@/hooks/use-dialog-form';
 
 interface ClientDialogProps {
     workspaceSlug: string;
@@ -53,46 +48,16 @@ export function ClientDialog({
                                  onOpenChange,
                                  onSuccess,
                              }: ClientDialogProps): React.ReactElement {
-    const isEditing = Boolean(client);
-    const notify = useNotify();
-    const [form, setForm] = useState<CreateClientInput>(
-        client ? clientToForm(client) : defaultForm(),
-    );
-    const [submitting, setSubmitting] = useState(false);
-
-    function handleOpenChange(next: boolean): void {
-        if ( !next ) {
-            setForm(client ? clientToForm(client) : defaultForm());
-        }
-        onOpenChange(next);
-    }
-
-    function set<K extends keyof CreateClientInput>(key: K, value: CreateClientInput[K]): void {
-        setForm((prev) => ({ ...prev, [key]: value }));
-    }
-
-    async function handleSubmit(e: React.FormEvent): Promise<void> {
-        e.preventDefault();
-        setSubmitting(true);
-
-        try {
-            const result = isEditing
-                ? await apiPatch<ClientDto>(`/api/${ workspaceSlug }/clients/${ client!.id }`, form)
-                : await apiPost<ClientDto>(`/api/${ workspaceSlug }/clients`, form);
-
-            if ( !result.ok ) {
-                notify(result.error, 'error');
-                return;
-            }
-
-            onSuccess(result.data);
-            handleOpenChange(false);
-        } catch {
-            notify('Network error. Please try again.', 'error');
-        } finally {
-            setSubmitting(false);
-        }
-    }
+    const { form, set, submitting, isEditing, handleOpenChange, handleSubmit } =
+        useDialogForm<CreateClientInput, ClientDto>({
+            entity: client,
+            defaultForm,
+            entityToForm: clientToForm,
+            createEndpoint: `/api/${ workspaceSlug }/clients`,
+            updateEndpoint: client ? `/api/${ workspaceSlug }/clients/${ client.seqId }` : undefined,
+            onSuccess,
+            onOpenChange,
+        });
 
     return (
         <Dialog.Root open={ open } onOpenChange={ handleOpenChange }>

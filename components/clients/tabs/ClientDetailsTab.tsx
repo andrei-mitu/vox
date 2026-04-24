@@ -35,11 +35,11 @@ export function ClientDetailsTab({
         <DetailsForm
             initial={ clientToForm(initialClient) }
             schema={ createClientSchema }
-            endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.id }` }
+            endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.seqId }` }
             toForm={ clientToForm }
             deleteSlot={ (form) => (
                 <DeleteButton
-                    endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.id }` }
+                    endpoint={ `/api/${ workspaceSlug }/clients/${ initialClient.seqId }` }
                     redirectTo={ `/${ workspaceSlug }/clients` }
                     entityLabel="client"
                     entityName={ form.name }

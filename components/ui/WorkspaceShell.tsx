@@ -1,5 +1,3 @@
-'use client';
-
 import { NotificationProvider } from '@/lib/client/notifications';
 import { NotificationStack }    from '@/components/ui/NotificationStack';
 

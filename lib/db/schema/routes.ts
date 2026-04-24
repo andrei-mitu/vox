@@ -1,4 +1,5 @@
 import {
+    bigserial,
     index,
     integer,
     pgTable,
@@ -12,6 +13,7 @@ export const routes = pgTable(
     "routes",
     {
         id: uuid("id").primaryKey().defaultRandom(),
+        seqId: bigserial("seq_id", { mode: "number" }).notNull(),
         teamId: uuid("team_id")
             .notNull()
             .references(() => teams.id, { onDelete: "cascade" }),

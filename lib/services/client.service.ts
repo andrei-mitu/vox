@@ -1,17 +1,17 @@
-import type { Client }          from "@/lib/db/schema";
+import type { Client } from "@/lib/db/schema";
 import type {
     ClientDto,
     CreateClientInput,
     UpdateClientInput,
-}                               from "@/lib/dto/client.dto";
+}                      from "@/lib/dto/client.dto";
 import {
     createClient,
     deleteClient,
+    findClientBySeqId,
     findClientsByTeamId,
-    findClientById,
     searchClients,
     updateClient,
-}                               from "@/lib/repositories/client.repository";
+}                      from "@/lib/repositories/client.repository";
 
 // ---------------------------------------------------------------------------
 // Mapping
@@ -20,6 +20,7 @@ import {
 function toClientDto(client: Client): ClientDto {
     return {
         id: client.id,
+        seqId: client.seqId,
         teamId: client.teamId,
         name: client.name,
         contactName: client.contactName,
@@ -51,10 +52,10 @@ export async function getClientsForTeam(
 }
 
 export async function getClient(
-    id: string,
     teamId: string,
+    seqId: number,
 ): Promise<ClientDto | null> {
-    const row = await findClientById(id, teamId);
+    const row = await findClientBySeqId(seqId, teamId);
     return row ? toClientDto(row) : null;
 }
 
@@ -87,10 +88,14 @@ export async function createNewClient(
 }
 
 export async function updateExistingClient(
-    id: string,
+    seqId: number,
     teamId: string,
     input: UpdateClientInput,
 ): Promise<ClientSuccess | ClientFailure> {
+    const existing = await findClientBySeqId(seqId, teamId);
+    if ( !existing ) {
+        return { ok: false, status: 404, message: "Client not found." };
+    }
     const patch: Parameters<typeof updateClient>[2] = {};
     if ( input.name !== undefined ) patch.name = input.name;
     if ( input.contactName !== undefined ) patch.contactName = input.contactName ?? null;
@@ -99,7 +104,7 @@ export async function updateExistingClient(
     if ( input.billingAddress !== undefined ) patch.billingAddress = input.billingAddress ?? null;
     if ( input.notes !== undefined ) patch.notes = input.notes ?? null;
 
-    const client = await updateClient(id, teamId, patch);
+    const client = await updateClient(existing.id, teamId, patch);
     if ( !client ) {
         return { ok: false, status: 404, message: "Client not found." };
     }
@@ -107,12 +112,13 @@ export async function updateExistingClient(
 }
 
 export async function removeClient(
-    id: string,
+    seqId: number,
     teamId: string,
 ): Promise<{ ok: true } | ClientFailure> {
-    const deleted = await deleteClient(id, teamId);
-    if ( !deleted ) {
+    const existing = await findClientBySeqId(seqId, teamId);
+    if ( !existing ) {
         return { ok: false, status: 404, message: "Client not found." };
     }
+    await deleteClient(existing.id, teamId);
     return { ok: true };
 }

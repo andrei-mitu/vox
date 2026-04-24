@@ -1,7 +1,15 @@
-import { and, eq, ilike, or } from "drizzle-orm";
-import { db }                 from "@/lib/db";
-import type { Client, NewClient } from "@/lib/db/schema";
-import { clients }            from "@/lib/db/schema";
+import {
+    and,
+    eq,
+    ilike,
+    or
+}                  from "drizzle-orm";
+import { db }      from "@/lib/db";
+import type {
+    Client,
+    NewClient
+}                  from "@/lib/db/schema";
+import { clients } from "@/lib/db/schema";
 
 export async function findClientsByTeamId(teamId: string): Promise<Client[]> {
     return db()
@@ -19,6 +27,17 @@ export async function findClientById(
         .select()
         .from(clients)
         .where(and(eq(clients.id, id), eq(clients.teamId, teamId)));
+    return rows[0] ?? null;
+}
+
+export async function findClientBySeqId(
+    seqId: number,
+    teamId: string,
+): Promise<Client | null> {
+    const rows = await db()
+        .select()
+        .from(clients)
+        .where(and(eq(clients.seqId, seqId), eq(clients.teamId, teamId)));
     return rows[0] ?? null;
 }
 

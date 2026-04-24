@@ -1,6 +1,5 @@
 'use client';
 
-import { useState }  from 'react';
 import {
     Button,
     Dialog,
@@ -8,16 +7,12 @@ import {
     Text,
     TextArea,
     TextField,
-}                    from '@radix-ui/themes';
+}                        from '@radix-ui/themes';
 import type {
     CreateRouteInput,
-    RouteDto
-}                    from '@/lib/dto/route.dto';
-import {
-    apiPatch,
-    apiPost
-}                    from '@/lib/client/api';
-import { useNotify } from '@/lib/client/notifications';
+    RouteDto,
+}                        from '@/lib/dto/route.dto';
+import { useDialogForm } from '@/hooks/use-dialog-form';
 
 interface RouteDialogProps {
     workspaceSlug: string;
@@ -56,46 +51,16 @@ export function RouteDialog({
                                 onOpenChange,
                                 onSuccess,
                             }: RouteDialogProps): React.ReactElement {
-    const isEditing = Boolean(route);
-    const notify = useNotify();
-    const [form, setForm] = useState<CreateRouteInput>(
-        route ? routeToForm(route) : defaultForm(),
-    );
-    const [submitting, setSubmitting] = useState(false);
-
-    function handleOpenChange(next: boolean): void {
-        if ( !next ) {
-            setForm(route ? routeToForm(route) : defaultForm());
-        }
-        onOpenChange(next);
-    }
-
-    function set<K extends keyof CreateRouteInput>(key: K, value: CreateRouteInput[K]): void {
-        setForm((prev) => ({ ...prev, [key]: value }));
-    }
-
-    async function handleSubmit(e: React.FormEvent): Promise<void> {
-        e.preventDefault();
-        setSubmitting(true);
-
-        try {
-            const result = isEditing
-                ? await apiPatch<RouteDto>(`/api/${ workspaceSlug }/routes/${ route!.id }`, form)
-                : await apiPost<RouteDto>(`/api/${ workspaceSlug }/routes`, form);
-
-            if ( !result.ok ) {
-                notify(result.error, 'error');
-                return;
-            }
-
-            onSuccess(result.data);
-            handleOpenChange(false);
-        } catch {
-            notify('Network error. Please try again.', 'error');
-        } finally {
-            setSubmitting(false);
-        }
-    }
+    const { form, set, submitting, isEditing, handleOpenChange, handleSubmit } =
+        useDialogForm<CreateRouteInput, RouteDto>({
+            entity: route,
+            defaultForm,
+            entityToForm: routeToForm,
+            createEndpoint: `/api/${ workspaceSlug }/routes`,
+            updateEndpoint: route ? `/api/${ workspaceSlug }/routes/${ route.seqId }` : undefined,
+            onSuccess,
+            onOpenChange,
+        });
 
     return (
         <Dialog.Root open={ open } onOpenChange={ handleOpenChange }>

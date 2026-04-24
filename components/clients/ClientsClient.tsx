@@ -1,23 +1,24 @@
 'use client';
 
-import { useState }       from 'react';
-import { useRouter }      from 'next/navigation';
+import { useState }            from 'react';
+import { useRouter }           from 'next/navigation';
 import {
-    AlertDialog,
     Button,
     Flex,
     Heading,
     IconButton,
     Table,
     Text,
-    TextField
-}                         from '@radix-ui/themes';
+    TextField,
+}                              from '@radix-ui/themes';
 import {
     Search,
     Trash2
-}                         from 'lucide-react';
-import { ClientDialog }   from './ClientDialog';
-import type { ClientDto } from '@/lib/dto/client.dto';
+}                              from 'lucide-react';
+import { ClientDialog }        from './ClientDialog';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { useEntityDelete }     from '@/hooks/use-entity-delete';
+import type { ClientDto }      from '@/lib/dto/client.dto';
 
 interface ClientsClientProps {
     initialClients: ClientDto[];
@@ -25,16 +26,18 @@ interface ClientsClientProps {
 }
 
 export function ClientsClient({
-    initialClients,
-    workspaceSlug,
-}: ClientsClientProps): React.ReactElement {
+                                  initialClients,
+                                  workspaceSlug,
+                              }: ClientsClientProps): React.ReactElement {
     const router = useRouter();
     const [clientsList, setClientsList] = useState<ClientDto[]>(initialClients);
     const [search, setSearch] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState<ClientDto | undefined>(undefined);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [deleting, setDeleting] = useState(false);
+
+    const { deleteTarget, setDeleteTarget, deleting, handleDelete } = useEntityDelete<ClientDto>({
+        endpoint: (c) => `/api/${ workspaceSlug }/clients/${ c.seqId }`,
+        onDeleted: (c) => setClientsList((prev) => prev.filter((x) => x.id !== c.id)),
+    });
 
     const filtered = search.trim()
         ? clientsList.filter((c) =>
@@ -47,33 +50,6 @@ export function ClientsClient({
         setClientsList((prev) =>
             [...prev, saved].sort((a, b) => a.name.localeCompare(b.name)),
         );
-    }
-
-    async function handleDelete(): Promise<void> {
-        if ( !deleteTarget ) {
-            return;
-        }
-        setDeleteError(null);
-        setDeleting(true);
-
-        try {
-            const res = await fetch(`/api/${ workspaceSlug }/clients/${ deleteTarget.id }`, {
-                method: 'DELETE',
-            });
-
-            if ( !res.ok ) {
-                const body = await res.json().catch(() => ({}));
-                setDeleteError((body as { error?: string }).error ?? 'Failed to delete client.');
-                return;
-            }
-
-            setClientsList((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-            setDeleteTarget(undefined);
-        } catch {
-            setDeleteError('Network error. Please try again.');
-        } finally {
-            setDeleting(false);
-        }
     }
 
     return (
@@ -128,7 +104,7 @@ export function ClientsClient({
                                 align="center"
                                 style={ { cursor: 'pointer' } }
                                 onClick={ () =>
-                                    router.push(`/${ workspaceSlug }/clients/${ client.id }/details`)
+                                    router.push(`/${ workspaceSlug }/clients/${ client.seqId }/details`)
                                 }
                             >
                                 <Table.Cell>
@@ -158,10 +134,7 @@ export function ClientsClient({
                                             size="1"
                                             color="red"
                                             aria-label="Delete client"
-                                            onClick={ () => {
-                                                setDeleteError(null);
-                                                setDeleteTarget(client);
-                                            } }
+                                            onClick={ () => setDeleteTarget(client) }
                                         >
                                             <Trash2 size={ 14 }/>
                                         </IconButton>
@@ -180,36 +153,21 @@ export function ClientsClient({
                 onSuccess={ handleSaved }
             />
 
-            <AlertDialog.Root
+            <DeleteConfirmDialog
                 open={ Boolean(deleteTarget) }
                 onOpenChange={ (open) => {
                     if ( !open ) {
                         setDeleteTarget(undefined);
-                        setDeleteError(null);
                     }
                 } }
-            >
-                <AlertDialog.Content maxWidth="400px">
-                    <AlertDialog.Title>Delete client?</AlertDialog.Title>
-                    <AlertDialog.Description>
-                        <strong>{ deleteTarget?.name }</strong> will be permanently removed. This
-                        action cannot be undone.
-                    </AlertDialog.Description>
-
-                    { deleteError && (
-                        <Text size="2" color="red" mt="2" as="p">{ deleteError }</Text>
-                    ) }
-
-                    <Flex gap="3" mt="4" justify="end">
-                        <AlertDialog.Cancel>
-                            <Button variant="soft" color="gray">Cancel</Button>
-                        </AlertDialog.Cancel>
-                        <Button color="red" onClick={ handleDelete } disabled={ deleting }>
-                            { deleting ? 'Deleting…' : 'Delete' }
-                        </Button>
-                    </Flex>
-                </AlertDialog.Content>
-            </AlertDialog.Root>
+                title="Delete client?"
+                description={
+                    <><strong>{ deleteTarget?.name }</strong> will be permanently removed. This
+                        action cannot be undone.</>
+                }
+                onConfirm={ handleDelete }
+                deleting={ deleting }
+            />
         </>
     );
 }

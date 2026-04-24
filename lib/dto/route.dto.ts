@@ -31,6 +31,7 @@ export type UpdateRouteInput = z.infer<typeof updateRouteSchema>;
 
 export interface RouteDto {
     id: string;
+    seqId: number;
     teamId: string;
     originCity: string;
     originCountry: string;

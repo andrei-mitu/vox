@@ -26,7 +26,7 @@ interface AdminSidebarProps {
 const NAV = [
     { href: '/admin/access-requests', label: 'Access Requests', icon: Mail, exact: false },
     { href: '/admin/accounts', label: 'Accounts', icon: Users, exact: false },
-    { href: '/admin/workspaces', label: 'Workspaces', icon: Shield, exact: false },
+    { href: '/admin/workspaces', label: 'Teams', icon: Shield, exact: false },
 ];
 
 export function AdminSidebar({ user, pendingCount }: AdminSidebarProps) {

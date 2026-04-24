@@ -1,10 +1,6 @@
-import {
-    notFound,
-    redirect,
-}                          from 'next/navigation';
-import { RouteDetailsTab } from '@/components/routes/tabs/RouteDetailsTab';
-import { findTeamBySlug }  from '@/lib/repositories/team.repository';
-import { getRoute }        from '@/lib/services/route.service';
+import { RouteDetailsTab }   from '@/components/routes/tabs/RouteDetailsTab';
+import { getRoute }          from '@/lib/services/route.service';
+import { resolveTeamEntity } from '@/lib/api/page-utils';
 
 export default async function RouteDetailsPage({
                                                    params,
@@ -12,16 +8,6 @@ export default async function RouteDetailsPage({
     params: Promise<{ workspace: string; routeId: string }>;
 }): Promise<React.ReactElement> {
     const { workspace: slug, routeId } = await params;
-
-    const team = await findTeamBySlug(slug);
-    if ( !team ) {
-        redirect('/no-access');
-    }
-
-    const route = await getRoute(team.id, routeId);
-    if ( !route ) {
-        notFound();
-    }
-
+    const { entity: route } = await resolveTeamEntity(slug, routeId, getRoute);
     return <RouteDetailsTab route={ route } workspaceSlug={ slug }/>;
 }

@@ -36,11 +36,11 @@ export function RouteDetailsTab({
         <DetailsForm
             initial={ routeToForm(initialRoute) }
             schema={ createRouteSchema }
-            endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.id }` }
+            endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.seqId }` }
             toForm={ routeToForm }
             deleteSlot={ (form) => (
                 <DeleteButton
-                    endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.id }` }
+                    endpoint={ `/api/${ workspaceSlug }/routes/${ initialRoute.seqId }` }
                     redirectTo={ `/${ workspaceSlug }/routes` }
                     entityLabel="route"
                     entityName={ `${ form.originCity }, ${ form.originCountry } → ${ form.destCity }, ${ form.destCountry }` }

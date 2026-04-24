@@ -1,9 +1,15 @@
 'use client';
 
-import { AlertDialog, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
-import { MoreHorizontal } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import {
+    AlertDialog,
+    Button,
+    DropdownMenu,
+    Flex,
+    Text
+}                            from '@radix-ui/themes';
+import { MoreHorizontal }    from 'lucide-react';
+import { useRouter }         from 'next/navigation';
+import { useState }          from 'react';
 import type { AdminUserRow } from '@/lib/repositories/user.repository';
 
 interface Props {
@@ -29,7 +35,7 @@ export function AccountActions({ user, currentAdminId }: Props) {
                 headers: body ? { 'Content-Type': 'application/json' } : undefined,
                 body: body ? JSON.stringify(body) : undefined,
             });
-            if (!res.ok) {
+            if ( !res.ok ) {
                 const data = await res.json() as { error?: string };
                 setError(data.error ?? 'Something went wrong. Please try again.');
                 return false;
@@ -44,92 +50,100 @@ export function AccountActions({ user, currentAdminId }: Props) {
         }
     }
 
-    if (isSelf) return null;
+    if ( isSelf ) {
+        return null;
+    }
 
     return (
         <>
-            {error && !confirmDelete && (
+            { error && !confirmDelete && (
                 <Text size="1" color="red" role="alert" className="block">
-                    {error}
+                    { error }
                 </Text>
-            )}
+            ) }
 
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
-                    <Button variant="ghost" size="1" disabled={loading} aria-label="Account actions">
-                        <MoreHorizontal size={14} />
+                    <Button variant="ghost" size="1" disabled={ loading } aria-label="Account actions">
+                        <MoreHorizontal size={ 14 }/>
                     </Button>
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content size="1" align="end">
-                    {/* Role — disabled when user has no profile row */}
-                    {user.systemRole === null ? (
+                    {/* Role — disabled when user has no profile row */ }
+                    { user.systemRole === null ? (
                         <DropdownMenu.Item disabled>
                             No profile (role unavailable)
                         </DropdownMenu.Item>
                     ) : user.systemRole === 'user' ? (
                         <DropdownMenu.Item
-                            onClick={() => call(`/api/admin/users/${user.id}/role`, 'PATCH', { role: 'admin' })}
+                            onClick={ () => call(`/api/admin/users/${ user.id }/role`, 'PATCH', { role: 'admin' }) }
                         >
                             Promote to Admin
                         </DropdownMenu.Item>
                     ) : (
                         <DropdownMenu.Item
-                            onClick={() => call(`/api/admin/users/${user.id}/role`, 'PATCH', { role: 'user' })}
+                            onClick={ () => call(`/api/admin/users/${ user.id }/role`, 'PATCH', { role: 'user' }) }
                         >
                             Demote to User
                         </DropdownMenu.Item>
-                    )}
+                    ) }
 
-                    <DropdownMenu.Separator />
+                    <DropdownMenu.Separator/>
 
-                    {/* Ban / Unban */}
-                    {isBanned ? (
-                        <DropdownMenu.Item onClick={() => call(`/api/admin/users/${user.id}/unban`, 'POST')}>
+                    {/* Ban / Unban */ }
+                    { isBanned ? (
+                        <DropdownMenu.Item onClick={ () => call(`/api/admin/users/${ user.id }/unban`, 'POST') }>
                             Unban
                         </DropdownMenu.Item>
                     ) : (
                         <DropdownMenu.Item
                             color="orange"
-                            onClick={() => call(`/api/admin/users/${user.id}/ban`, 'POST')}
+                            onClick={ () => call(`/api/admin/users/${ user.id }/ban`, 'POST') }
                         >
                             Ban
                         </DropdownMenu.Item>
-                    )}
+                    ) }
 
-                    <DropdownMenu.Separator />
+                    <DropdownMenu.Separator/>
 
-                    <DropdownMenu.Item color="red" onClick={() => { setError(null); setConfirmDelete(true); }}>
+                    <DropdownMenu.Item color="red" onClick={ () => {
+                        setError(null);
+                        setConfirmDelete(true);
+                    } }>
                         Delete account
                     </DropdownMenu.Item>
                 </DropdownMenu.Content>
             </DropdownMenu.Root>
 
-            {/* Delete confirm dialog */}
-            <AlertDialog.Root open={confirmDelete} onOpenChange={setConfirmDelete}>
+            {/* Delete confirm dialog */ }
+            <AlertDialog.Root open={ confirmDelete } onOpenChange={ setConfirmDelete }>
                 <AlertDialog.Content maxWidth="420px">
                     <AlertDialog.Title>Delete account?</AlertDialog.Title>
                     <AlertDialog.Description size="2" color="gray">
-                        This will permanently delete <strong>{user.email}</strong> and all their data. This action cannot be undone.
+                        This will permanently delete <strong>{ user.email }</strong> and all their data. This action
+                        cannot be undone.
                     </AlertDialog.Description>
-                    {error && (
+                    { error && (
                         <Text size="1" color="red" role="alert" className="block mt-2">
-                            {error}
+                            { error }
                         </Text>
-                    )}
+                    ) }
                     <Flex gap="3" justify="end" mt="4">
                         <AlertDialog.Cancel>
-                            <Button variant="soft" color="gray" onClick={() => setError(null)}>
+                            <Button variant="soft" color="gray" onClick={ () => setError(null) }>
                                 Cancel
                             </Button>
                         </AlertDialog.Cancel>
                         <AlertDialog.Action>
                             <Button
                                 color="red"
-                                loading={loading}
-                                onClick={async () => {
-                                    const ok = await call(`/api/admin/users/${user.id}`, 'DELETE');
-                                    if (ok) setConfirmDelete(false);
-                                }}
+                                loading={ loading }
+                                onClick={ async () => {
+                                    const ok = await call(`/api/admin/users/${ user.id }`, 'DELETE');
+                                    if ( ok ) {
+                                        setConfirmDelete(false);
+                                    }
+                                } }
                             >
                                 Delete
                             </Button>

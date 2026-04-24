@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1775664376721,
-      "tag": "0000_illegal_leader",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1775757158609,
-      "tag": "0001_cynical_vance_astro",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1776769812088,
-      "tag": "0002_tricky_mandarin",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1776871328901,
-      "tag": "0003_glossy_komodo",
+      "when": 1777034034805,
+      "tag": "0000_groovy_proemial_gods",
       "breakpoints": true
     }
   ]

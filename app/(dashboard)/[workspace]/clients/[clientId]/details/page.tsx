@@ -1,10 +1,6 @@
-import {
-    notFound,
-    redirect,
-}                           from 'next/navigation';
-import { ClientDetailsTab } from '@/components/clients/tabs/ClientDetailsTab';
-import { findTeamBySlug }   from '@/lib/repositories/team.repository';
-import { getClient }        from '@/lib/services/client.service';
+import { ClientDetailsTab }  from '@/components/clients/tabs/ClientDetailsTab';
+import { getClient }         from '@/lib/services/client.service';
+import { resolveTeamEntity } from '@/lib/api/page-utils';
 
 export default async function ClientDetailsPage({
                                                     params,
@@ -12,16 +8,6 @@ export default async function ClientDetailsPage({
     params: Promise<{ workspace: string; clientId: string }>;
 }): Promise<React.ReactElement> {
     const { workspace: slug, clientId } = await params;
-
-    const team = await findTeamBySlug(slug);
-    if ( !team ) {
-        redirect('/no-access');
-    }
-
-    const client = await getClient(clientId, team.id);
-    if ( !client ) {
-        notFound();
-    }
-
+    const { entity: client } = await resolveTeamEntity(slug, clientId, getClient);
     return <ClientDetailsTab client={ client } workspaceSlug={ slug }/>;
 }

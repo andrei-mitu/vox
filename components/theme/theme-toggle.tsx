@@ -1,14 +1,25 @@
 'use client';
 
-import { Moon, Sun }  from 'lucide-react';
-import { useTheme }   from '@/components/theme/theme-provider';
-import { Button }     from '@/components/ui/Button';
+import {
+    useEffect,
+    useState
+}                   from 'react';
+import {
+    Moon,
+    Sun
+}                   from 'lucide-react';
+import { useTheme } from '@/components/theme/theme-provider';
+import { Button }   from '@/components/ui/Button';
 
 export function ThemeToggleButton() {
     const { resolvedTheme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
 
-    // Render a placeholder until the theme resolves on the client.
-    if (!resolvedTheme) {
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if ( !mounted ) {
         return (
             <Button variant="soft" disabled type="button" aria-hidden>
                 <Sun size={16} className="opacity-40" />

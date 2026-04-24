@@ -57,7 +57,7 @@ export function Sidebar({ user, workspace, isAdmin = false }: SidebarProps) {
     const initials = user.email?.[0]?.toUpperCase() ?? '?';
     const navItems = getNavItems(workspace.slug);
     const dashboardHref = `/${workspace.slug}/dashboard`;
-    const newShipmentHref = `/${workspace.slug}/shipments/new`;
+    const newTripHref = `/${ workspace.slug }/trips/new`;
 
     return (
         <aside
@@ -103,10 +103,10 @@ export function Sidebar({ user, workspace, isAdmin = false }: SidebarProps) {
             {/* Primary action */}
             <div className={cn('shrink-0 px-3 py-4', collapsed && 'px-2')}>
                 {collapsed ? (
-                    <Tooltip content="New Shipment" side="right">
+                    <Tooltip content="New Trip" side="right">
                         <Link
-                            href={newShipmentHref}
-                            aria-label="New Shipment"
+                            href={ newTripHref }
+                            aria-label="New Trip"
                             className="flex items-center justify-center w-full p-3 rounded-lg bg-accent-primary text-white hover:opacity-90 transition-opacity"
                         >
                             <Plus size={18} />
@@ -114,11 +114,11 @@ export function Sidebar({ user, workspace, isAdmin = false }: SidebarProps) {
                     </Tooltip>
                 ) : (
                     <Link
-                        href={newShipmentHref}
+                        href={ newTripHref }
                         className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-accent-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
                     >
                         <Plus size={16} className="shrink-0" />
-                        New Shipment
+                        New Trip
                     </Link>
                 )}
             </div>

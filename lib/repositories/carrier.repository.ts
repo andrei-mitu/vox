@@ -20,6 +20,17 @@ export async function findCarrierById(
     return rows[0] ?? null;
 }
 
+export async function findCarrierBySeqId(
+    seqId: number,
+    teamId: string,
+): Promise<Carrier | null> {
+    const rows = await db()
+        .select()
+        .from(carriers)
+        .where(and(eq(carriers.seqId, seqId), eq(carriers.teamId, teamId)));
+    return rows[0] ?? null;
+}
+
 export async function findCarriersByTeamId(teamId: string): Promise<Carrier[]> {
     return db()
         .select()

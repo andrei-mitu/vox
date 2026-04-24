@@ -1,7 +1,11 @@
 'use client';
 
+import {
+    useEffect,
+    useState
+}                   from 'react';
 import { useTheme } from '@/components/theme/theme-provider';
-import Image from 'next/image';
+import Image        from 'next/image';
 
 interface VoxLogoProps {
   className?: string;
@@ -16,9 +20,13 @@ const LOGO_LIGHT_BG = '/images/logo/VOX Dark 2 gradient.svg';
 
 export function VoxLogo({ className, width = 100, height = 50 }: VoxLogoProps) {
   const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
 
-  // Render a placeholder until the theme resolves, avoiding a flash of the wrong logo.
-  if (!resolvedTheme) {
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if ( !mounted ) {
     return <div style={{ width, height }} aria-hidden />;
   }
 

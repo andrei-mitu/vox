@@ -28,10 +28,10 @@ export default async function SelectWorkspacePage() {
         <Flex direction="column" gap="5" className="w-full max-w-sm">
             <Box>
                 <Heading size="6" mb="1">
-                    Select a workspace
+                    Select a team
                 </Heading>
                 <Text color="gray" size="2">
-                    Choose where you want to continue.
+                    Choose which team to continue with.
                 </Text>
             </Box>
 
@@ -43,7 +43,7 @@ export default async function SelectWorkspacePage() {
                         className="block"
                     >
                         <Card asChild>
-                            <div className="cursor-pointer hover:bg-[var(--gray-2)] transition-colors px-4 py-3">
+                            <div className="cursor-pointer hover:bg-(--gray-2) transition-colors px-4 py-3">
                                 <Text as="div" weight="medium">
                                     { team.name }
                                 </Text>

@@ -7,7 +7,7 @@ import type {
 import {
     createRoute,
     deleteRoute,
-    findRouteById,
+    findRouteBySeqId,
     findRoutesByTeamId,
     updateRoute,
 }                     from "@/lib/repositories/route.repository";
@@ -19,6 +19,7 @@ import {
 function toRouteDto(route: Route): RouteDto {
     return {
         id: route.id,
+        seqId: route.seqId,
         teamId: route.teamId,
         originCity: route.originCity,
         originCountry: route.originCountry,
@@ -43,9 +44,9 @@ export async function getRoutesForTeam(teamId: string): Promise<RouteDto[]> {
 
 export async function getRoute(
     teamId: string,
-    routeId: string,
+    seqId: number,
 ): Promise<RouteDto | null> {
-    const row = await findRouteById(routeId, teamId);
+    const row = await findRouteBySeqId(seqId, teamId);
     return row ? toRouteDto(row) : null;
 }
 
@@ -74,10 +75,14 @@ export async function createNewRoute(
 }
 
 export async function updateExistingRoute(
-    id: string,
+    seqId: number,
     teamId: string,
     input: UpdateRouteInput,
 ): Promise<RouteSuccess | RouteFailure> {
+    const existing = await findRouteBySeqId(seqId, teamId);
+    if ( !existing ) {
+        return { ok: false, status: 404, message: "Route not found." };
+    }
     const patch: Parameters<typeof updateRoute>[2] = {};
     if ( input.originCity !== undefined ) {
         patch.originCity = input.originCity;
@@ -101,7 +106,7 @@ export async function updateExistingRoute(
         patch.notes = input.notes ?? null;
     }
 
-    const route = await updateRoute(id, teamId, patch);
+    const route = await updateRoute(existing.id, teamId, patch);
     if ( !route ) {
         return { ok: false, status: 404, message: "Route not found." };
     }
@@ -109,12 +114,13 @@ export async function updateExistingRoute(
 }
 
 export async function removeRoute(
-    id: string,
+    seqId: number,
     teamId: string,
 ): Promise<{ ok: true } | RouteFailure> {
-    const deleted = await deleteRoute(id, teamId);
-    if ( !deleted ) {
+    const existing = await findRouteBySeqId(seqId, teamId);
+    if ( !existing ) {
         return { ok: false, status: 404, message: "Route not found." };
     }
+    await deleteRoute(existing.id, teamId);
     return { ok: true };
 }

@@ -1,16 +1,18 @@
 import {
+    bigserial,
     index,
     pgTable,
     text,
     timestamp,
     uuid,
-} from "drizzle-orm/pg-core";
+}                from "drizzle-orm/pg-core";
 import { teams } from "./teams";
 
 export const clients = pgTable(
     "clients",
     {
         id: uuid("id").primaryKey().defaultRandom(),
+        seqId: bigserial("seq_id", { mode: "number" }).notNull(),
         teamId: uuid("team_id")
             .notNull()
             .references(() => teams.id, { onDelete: "cascade" }),

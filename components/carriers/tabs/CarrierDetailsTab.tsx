@@ -42,11 +42,11 @@ export function CarrierDetailsTab({
         <DetailsForm
             initial={ carrierToForm(initialCarrier) }
             schema={ createCarrierSchema }
-            endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.id }` }
+            endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.seqId }` }
             toForm={ carrierToForm }
             deleteSlot={ (form) => (
                 <DeleteButton
-                    endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.id }` }
+                    endpoint={ `/api/${ workspaceSlug }/carriers/${ initialCarrier.seqId }` }
                     redirectTo={ `/${ workspaceSlug }/carriers` }
                     entityLabel="carrier"
                     entityName={ form.name }

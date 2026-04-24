@@ -30,6 +30,7 @@ export type UpdateClientInput = z.infer<typeof updateClientSchema>;
 
 export interface ClientDto {
     id: string;
+    seqId: number;
     teamId: string;
     name: string;
     contactName: string | null;

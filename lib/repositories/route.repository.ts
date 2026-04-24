@@ -28,6 +28,17 @@ export async function findRouteById(
     return rows[0] ?? null;
 }
 
+export async function findRouteBySeqId(
+    seqId: number,
+    teamId: string,
+): Promise<Route | null> {
+    const rows = await db()
+        .select()
+        .from(routes)
+        .where(and(eq(routes.seqId, seqId), eq(routes.teamId, teamId)));
+    return rows[0] ?? null;
+}
+
 export async function createRoute(data: NewRoute): Promise<Route> {
     const rows = await db().insert(routes).values(data).returning();
     return rows[0]!;

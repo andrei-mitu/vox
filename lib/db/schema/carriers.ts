@@ -1,4 +1,5 @@
 import {
+    bigserial,
     index,
     pgEnum,
     pgTable,
@@ -27,6 +28,7 @@ export const carriers = pgTable(
     "carriers",
     {
         id: uuid("id").primaryKey().defaultRandom(),
+        seqId: bigserial("seq_id", { mode: "number" }).notNull(),
         teamId: uuid("team_id")
             .notNull()
             .references(() => teams.id, { onDelete: "cascade" }),

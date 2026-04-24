@@ -8,7 +8,7 @@ import type {
 import {
     createCarrier,
     deleteCarrier,
-    findCarrierById,
+    findCarrierBySeqId,
     findCarriersByTeamId,
     updateCarrier,
 }                            from "@/lib/repositories/carrier.repository";
@@ -20,6 +20,7 @@ import {
 function toCarrierDto(carrier: Carrier): CarrierDto {
     return {
         id: carrier.id,
+        seqId: carrier.seqId,
         teamId: carrier.teamId,
         name: carrier.name,
         code: carrier.code,
@@ -40,9 +41,9 @@ function toCarrierDto(carrier: Carrier): CarrierDto {
 
 export async function getCarrier(
     teamId: string,
-    carrierId: string,
+    seqId: number,
 ): Promise<CarrierDto | null> {
-    const row = await findCarrierById(carrierId, teamId);
+    const row = await findCarrierBySeqId(seqId, teamId);
     return row ? toCarrierDto(row) : null;
 }
 
@@ -90,10 +91,14 @@ export async function createNewCarrier(
 }
 
 export async function updateExistingCarrier(
-    id: string,
+    seqId: number,
     teamId: string,
     input: UpdateCarrierInput,
 ): Promise<CarrierSuccess | CarrierFailure> {
+    const existing = await findCarrierBySeqId(seqId, teamId);
+    if ( !existing ) {
+        return { ok: false, status: 404, message: "Carrier not found." };
+    }
     const patch: Parameters<typeof updateCarrier>[2] = {};
     if ( input.name !== undefined ) {
         patch.name = input.name;
@@ -121,7 +126,7 @@ export async function updateExistingCarrier(
     }
 
     try {
-        const carrier = await updateCarrier(id, teamId, patch);
+        const carrier = await updateCarrier(existing.id, teamId, patch);
         if ( !carrier ) {
             return { ok: false, status: 404, message: "Carrier not found." };
         }
@@ -139,12 +144,13 @@ export async function updateExistingCarrier(
 }
 
 export async function removeCarrier(
-    id: string,
+    seqId: number,
     teamId: string,
 ): Promise<{ ok: true } | CarrierFailure> {
-    const deleted = await deleteCarrier(id, teamId);
-    if ( !deleted ) {
+    const existing = await findCarrierBySeqId(seqId, teamId);
+    if ( !existing ) {
         return { ok: false, status: 404, message: "Carrier not found." };
     }
+    await deleteCarrier(existing.id, teamId);
     return { ok: true };
 }

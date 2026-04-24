@@ -45,6 +45,7 @@ export type UpdateCarrierInput = z.infer<typeof updateCarrierSchema>;
 
 export interface CarrierDto {
     id: string;
+    seqId: number;
     teamId: string;
     name: string;
     code: string;

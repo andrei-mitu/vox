@@ -1,10 +1,6 @@
-import {
-    notFound,
-    redirect
-}                            from "next/navigation";
-import { CarrierDetailsTab } from "@/components/carriers/tabs/CarrierDetailsTab";
-import { findTeamBySlug }    from "@/lib/repositories/team.repository";
-import { getCarrier }        from "@/lib/services/carrier.service";
+import { CarrierDetailsTab } from '@/components/carriers/tabs/CarrierDetailsTab';
+import { getCarrier }        from '@/lib/services/carrier.service';
+import { resolveTeamEntity } from '@/lib/api/page-utils';
 
 export default async function CarrierDetailsPage({
                                                      params,
@@ -12,16 +8,6 @@ export default async function CarrierDetailsPage({
     params: Promise<{ workspace: string; carrierId: string }>;
 }): Promise<React.ReactElement> {
     const { workspace: slug, carrierId } = await params;
-
-    const team = await findTeamBySlug(slug);
-    if ( !team ) {
-        redirect("/no-access");
-    }
-
-    const carrier = await getCarrier(team.id, carrierId);
-    if ( !carrier ) {
-        notFound();
-    }
-
+    const { entity: carrier } = await resolveTeamEntity(slug, carrierId, getCarrier);
     return <CarrierDetailsTab carrier={ carrier } workspaceSlug={ slug }/>;
 }

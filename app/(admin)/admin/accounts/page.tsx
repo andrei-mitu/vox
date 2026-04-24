@@ -1,17 +1,27 @@
-import { Badge, Button, Flex, Heading, Table, Text } from '@radix-ui/themes';
-import Link from 'next/link';
+import {
+    Badge,
+    Button,
+    Flex,
+    Heading,
+    Table,
+    Text
+}                            from '@radix-ui/themes';
+import Link                  from 'next/link';
 import type { AdminUserRow } from '@/lib/repositories/user.repository';
-import { countAllUsers, findAllUsersWithProfiles } from '@/lib/repositories/user.repository';
-import { getSessionUser } from '@/lib/services/auth.service';
-import { AccountActions } from './AccountActions';
+import {
+    countAllUsers,
+    findAllUsersWithProfiles
+}                            from '@/lib/repositories/user.repository';
+import { getSessionUser }    from '@/lib/services/auth.service';
+import { AccountActions }    from './AccountActions';
 
 const PAGE_SIZE = 50;
 
 function statusOf(user: AdminUserRow): { label: string; color: 'green' | 'red' | 'gray' } {
-    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+    if ( user.bannedUntil && new Date(user.bannedUntil) > new Date() ) {
         return { label: 'Banned', color: 'red' };
     }
-    if (!user.emailConfirmedAt) {
+    if ( !user.emailConfirmedAt ) {
         return { label: 'Unconfirmed', color: 'gray' };
     }
     return { label: 'Active', color: 'green' };
@@ -20,8 +30,8 @@ function statusOf(user: AdminUserRow): { label: string; color: 'green' | 'red' |
 // Auth guard lives in (admin)/layout.tsx.
 // getSessionUser() is called here only to obtain admin.id for self-action prevention.
 export default async function AccountsPage({
-    searchParams,
-}: {
+                                               searchParams,
+                                           }: {
     searchParams: Promise<{ page?: string }>;
 }) {
     const { page: rawPage } = await searchParams;
@@ -40,7 +50,7 @@ export default async function AccountsPage({
         <div className="p-8 max-w-6xl">
             <Heading size="6" mb="2">Accounts</Heading>
             <Text size="2" color="gray" mb="6" as="p">
-                {total} account{total !== 1 ? 's' : ''} registered.
+                { total } account{ total !== 1 ? 's' : '' } registered.
             </Text>
 
             <Table.Root variant="surface">
@@ -50,73 +60,73 @@ export default async function AccountsPage({
                         <Table.ColumnHeaderCell>Role</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Joined</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell />
+                        <Table.ColumnHeaderCell/>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {users.map((user) => {
+                    { users.map((user) => {
                         const st = statusOf(user);
                         return (
-                            <Table.Row key={user.id} align="center">
+                            <Table.Row key={ user.id } align="center">
                                 <Table.Cell>
                                     <div>
                                         <Text size="2" weight="medium" className="block">
-                                            {user.fullName ?? '—'}
+                                            { user.fullName ?? '—' }
                                         </Text>
-                                        <Text size="1" color="gray">{user.email}</Text>
+                                        <Text size="1" color="gray">{ user.email }</Text>
                                     </div>
                                 </Table.Cell>
                                 <Table.Cell>
-                                    {user.systemRole ? (
+                                    { user.systemRole ? (
                                         <Badge
-                                            color={user.systemRole === 'admin' ? 'violet' : 'blue'}
+                                            color={ user.systemRole === 'admin' ? 'violet' : 'blue' }
                                             radius="full"
                                             size="1"
                                         >
-                                            {user.systemRole}
+                                            { user.systemRole }
                                         </Badge>
                                     ) : (
                                         <Badge color="orange" radius="full" size="1" variant="soft">
                                             no profile
                                         </Badge>
-                                    )}
+                                    ) }
                                 </Table.Cell>
                                 <Table.Cell>
-                                    <Badge color={st.color} radius="full" size="1">{st.label}</Badge>
+                                    <Badge color={ st.color } radius="full" size="1">{ st.label }</Badge>
                                 </Table.Cell>
                                 <Table.Cell>
                                     <Text size="2" color="gray">
-                                        {new Date(user.createdAt).toLocaleDateString()}
+                                        { new Date(user.createdAt).toLocaleDateString() }
                                     </Text>
                                 </Table.Cell>
                                 <Table.Cell>
-                                    <AccountActions user={user} currentAdminId={adminId} />
+                                    <AccountActions user={ user } currentAdminId={ adminId }/>
                                 </Table.Cell>
                             </Table.Row>
                         );
-                    })}
+                    }) }
                 </Table.Body>
             </Table.Root>
 
-            {totalPages > 1 && (
+            { totalPages > 1 && (
                 <Flex align="center" justify="between" mt="4">
                     <Text size="2" color="gray">
-                        Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
+                        Showing { (page - 1) * PAGE_SIZE + 1 }–{ Math.min(page * PAGE_SIZE, total) } of { total }
                     </Text>
                     <Flex gap="2">
-                        {page > 1 && (
+                        { page > 1 && (
                             <Button asChild size="1" variant="soft">
-                                <Link href={`/admin/accounts?page=${page - 1}`}>Previous</Link>
+                                <Link href={ `/admin/accounts?page=${ page - 1 }` }>Previous</Link>
                             </Button>
-                        )}
-                        {page < totalPages && (
+                        ) }
+                        { page < totalPages && (
                             <Button asChild size="1" variant="soft">
-                                <Link href={`/admin/accounts?page=${page + 1}`}>Next</Link>
+                                <Link href={ `/admin/accounts?page=${ page + 1 }` }>Next</Link>
                             </Button>
-                        )}
+                        ) }
                     </Flex>
                 </Flex>
-            )}
+            ) }
         </div>
     );
 }
